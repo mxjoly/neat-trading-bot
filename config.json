@@ -1,0 +1,43 @@
+{
+  "taker_fees_futures": 0.04,
+  "maker_fees_futures": 0.02,
+  "backtest": {
+    "start_date": "2022-01-01 00:00:00",
+    "end_date": "2022-02-01 00:00:00",
+    "initial_capital": 10000,
+    "save_db": false
+  },
+  "neat": {
+    "start_date_training": "2021-09-01 00:00:00",
+    "end_date_training": "2021-10-01 00:00:00",
+    "start_date_test": "2021-09-01 00:00:00",
+    "end_date_test": "2021-10-01 00:00:00",
+    "initial_capital": 10000,
+    "population": 100,
+    "generations": 100,
+    "goals": {
+      "win_rate": null,
+      "profit_ratio": null,
+      "max_relative_drawdown": -0.03
+    },
+    "neural_network": {
+      "indicator_inputs": {
+        "EMA21": true,
+        "EMA50": true,
+        "EMA100": true,
+        "ADX": true,
+        "AO": true,
+        "CCI": true,
+        "MFI": true,
+        "ROC": true,
+        "RSI": true,
+        "WILLIAM_R": true,
+        "KIJUN": true,
+        "VWAP": true,
+        "VOL_OSC": true,
+        "PRICE_CHANGE": true,
+        "VOL": true
+      }
+    }
+  }
+}

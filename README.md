@@ -1,2 +1,3 @@
-# ai-trading-bot
-Trading bot using machine learning algorithm (neat, knn)
+# Neat Trading Bot
+
+Crypto trading bot using genetic algorithm (NEAT).

@@ -1,0 +1,43 @@
+{
+  "name": "neat-trading-bot",
+  "version": "1.0.0",
+  "description": "A trading bot using machine learning algorithms",
+  "scripts": {
+    "start": "cross-env NODE_ENV=production nodemon ./build/server.js",
+    "dev": "cross-env NODE_ENV=development nodemon ./build/server.js",
+    "build:prod": "cross-env NODE_ENV=production tsc",
+    "build:dev": "cross-env NODE_ENV=development tsc",
+    "build:test": "cross-env NODE_ENV=test tsc",
+    "data": "node ./scripts/generateData 1m,5m,15m,1h,4h",
+    "train": "cross-env NODE_ENV=test node ./build/training/train.js USE_SAVE=true",
+    "train:reset": "cross-env NODE_ENV=test node ./build/training/train.js USE_SAVE=false",
+    "test": "cross-env NODE_ENV=test node ./build/backtest/index.js DEBUG=false",
+    "test:debug": "cross-env NODE_ENV=test node ./build/backtest/index.js DEBUG=true",
+    "clear-temp": "rm -rd ./temp",
+    "depgraph": "depcruise -c .dependency-cruiser.js --exclude \"node_modules/*\" --output-type dot src | dot -T svg > dependency-graph.svg"
+  },
+  "keywords": [],
+  "author": "mxjoly <maxime.joly2808@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "ansi-colors": "^4.1.1",
+    "binance-api-node": "^0.11.31",
+    "chalk": "^4.1.2",
+    "circular-functions": "^0.0.4",
+    "cli-progress": "^3.10.0",
+    "csv-parser": "^3.0.0",
+    "dayjs": "^1.10.7",
+    "dotenv": "^16.0.0",
+    "node-json-db": "^1.4.1",
+    "nodemon": "^2.0.15",
+    "safe-require": "^1.0.4",
+    "technicalindicators": "^3.1.0",
+    "winston": "^3.6.0"
+  },
+  "devDependencies": {
+    "@types/nodemon": "^1.19.1",
+    "cross-env": "^7.0.3",
+    "dependency-cruiser": "^11.4.0",
+    "typescript": "^4.5.5"
+  }
+}
