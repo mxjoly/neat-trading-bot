@@ -163,7 +163,9 @@ export function calculateIndicators(candles: CandleData[]) {
     ? candles.map((c) => (c.close - c.open) / c.open)
     : null;
 
+  // We save min max of the last training (sort of memory)
   let minMax: { min: number; max: number }[] = loadMinMax() || [];
+  let saveMinMaxToFile = minMax.length === 0;
 
   // Inputs for the neural network
   let inputs = [
@@ -206,7 +208,8 @@ export function calculateIndicators(candles: CandleData[]) {
       return new Array(diff).fill(null).concat(values);
     });
 
-  saveMinMax(minMax);
+  if (saveMinMaxToFile) saveMinMax(minMax);
+
   return inputs;
 }
 
