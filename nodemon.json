@@ -1,0 +1,5 @@
+{
+  "verbose": false,
+  "ignore": ["logs/**"],
+  "delay": 200
+}
