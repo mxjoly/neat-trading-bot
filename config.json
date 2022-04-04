@@ -4,8 +4,7 @@
   "backtest": {
     "start_date": "2022-01-01 00:00:00",
     "end_date": "2022-03-01 00:00:00",
-    "initial_capital": 10000,
-    "save_db": false
+    "initial_capital": 10000
   },
   "neat": {
     "start_date_training": "2021-01-01 00:00:00",

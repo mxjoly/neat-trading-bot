@@ -6,12 +6,9 @@ import dayjs from 'dayjs';
 import safeRequire from 'safe-require';
 import { binanceClient } from '../init';
 import { decimalCeil, decimalFloor, normalize } from '../utils/math';
-import { clone } from '../utils/object';
-import { createDatabase, saveFuturesState } from './database';
 import { debugLastCandle, debugWallet, log, printDateBanner } from './debug';
 import generateHTMLReport from './generateReport';
 import { Counter } from '../tools/counter';
-import { getPricePrecision, getQuantityPrecision } from '../utils/currencyInfo';
 import { durationBetweenDates } from '../utils/timeFrame';
 import { loadCandlesFromCSV } from '../utils/loadCandleData';
 import Genome from '../core/genome';
@@ -28,8 +25,6 @@ if (!BotConfig) {
   process.exit(1);
 }
 
-const BacktestConfig = BotConfig['backtest'];
-
 // ====================================================================== //
 
 const bar = new cliProgress.SingleBar(
@@ -41,9 +36,6 @@ const bar = new cliProgress.SingleBar(
 );
 
 // ====================================================================== //
-
-// Save the backtest history to the database
-const SAVE_HISTORY = BacktestConfig['save_db'];
 
 // Debug mode with console.log
 export const DEBUG = process.argv[2]
@@ -123,8 +115,6 @@ export class BackTestBot {
    * Prepare the mock account data, the open orders, and initialize some properties of the strategy report
    */
   public prepare() {
-    if (SAVE_HISTORY) createDatabase();
-
     this.futuresWallet = {
       availableBalance: this.initialCapital,
       totalWalletBalance: this.initialCapital,
@@ -241,9 +231,6 @@ export class BackTestBot {
 
       // Update the total unrealized pnl on the futures account
       this.updateTotalPNL();
-
-      // Save the current state to the db
-      if (SAVE_HISTORY) this.saveStateToDB(currentDate);
 
       // Debugging
       debugWallet(this.futuresWallet);
@@ -494,16 +481,6 @@ export class BackTestBot {
 
       if (Math.abs(pnl) > this.maxLoss) this.maxLoss = Math.abs(pnl);
     }
-  }
-
-  /**
-   * Save the current account state in the json database
-   */
-  private saveStateToDB(currentDate: Date) {
-    saveFuturesState(
-      dayjs(currentDate).format('YYYY-MM-DD HH:mm'),
-      clone(this.futuresWallet)
-    );
   }
 
   /**
