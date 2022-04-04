@@ -4,6 +4,7 @@ import { Counter } from '../tools/counter';
 import Genome from './genome';
 import { getPricePrecision, getQuantityPrecision } from '../utils/currencyInfo';
 import { BotConfig } from '../init';
+import { normalize } from '../utils/math';
 
 const TAKER_FEES = BotConfig['taker_fees_futures']; // %
 const MAKER_FEES = BotConfig['maker_fees_futures']; // %
@@ -120,11 +121,22 @@ class Player {
    * Get inputs for brain
    */
   public look(indicators: number[]) {
+    let { risk, leverage } = this.strategyConfig;
     let vision: number[] = [];
 
     // Holding a trade ?
     const holdingTrade = this.wallet.position.size !== 0 ? 1 : 0;
     vision.push(holdingTrade);
+
+    // Current PNL
+    const pnl = normalize(
+      this.wallet.totalUnrealizedProfit,
+      (-risk * this.wallet.totalWalletBalance) / leverage,
+      (risk * this.wallet.totalWalletBalance) / leverage,
+      0,
+      1
+    );
+    vision.push(pnl);
 
     // Add indicator values
     vision = vision.concat(indicators);

@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { normalize } from '../utils/math';
 import * as VolumeOscillator from '../indicators/volumeOscillator';
 import { NEURAL_NETWORK_INDICATORS_INPUTS } from './loadConfig';
@@ -161,6 +163,8 @@ export function calculateIndicators(candles: CandleData[]) {
     ? candles.map((c) => (c.close - c.open) / c.open)
     : null;
 
+  let minMax: { min: number; max: number }[] = loadMinMax() || [];
+
   // Inputs for the neural network
   let inputs = [
     ema21,
@@ -180,9 +184,18 @@ export function calculateIndicators(candles: CandleData[]) {
     priceChange,
   ]
     .filter((i) => i !== null)
-    .map((values) => {
-      let min = Math.min(...values);
-      let max = Math.max(...values);
+    .map((values, index) => {
+      let min, max;
+
+      if (minMax.length > index) {
+        min = minMax[index].min;
+        max = minMax[index].max;
+      } else {
+        min = Math.min(...values);
+        max = Math.max(...values);
+        minMax[index] = { min, max };
+      }
+
       return values.map((v) => {
         return normalize(v, min, max, 0, 1);
       });
@@ -193,5 +206,23 @@ export function calculateIndicators(candles: CandleData[]) {
       return new Array(diff).fill(null).concat(values);
     });
 
+  saveMinMax(minMax);
   return inputs;
+}
+
+function loadMinMax() {
+  const tempDirectory = path.resolve(process.cwd(), 'temp');
+  const saveFile = path.join(tempDirectory, 'min-max.json');
+  if (fs.existsSync(saveFile)) {
+    let data = fs.readFileSync(saveFile, 'utf-8');
+    return JSON.parse(data);
+  }
+  return null;
+}
+
+function saveMinMax(minMax: { min: number; max: number }[]) {
+  const tempDirectory = path.resolve(process.cwd(), 'temp');
+  const saveFile = path.join(tempDirectory, 'min-max.json');
+  if (!fs.existsSync(tempDirectory)) fs.mkdirSync(tempDirectory);
+  fs.writeFileSync(saveFile, JSON.stringify(minMax));
 }

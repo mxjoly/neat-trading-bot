@@ -145,8 +145,8 @@ export async function train(useSave?: boolean) {
   let population = new Population({
     size: totalPopulation,
     player: {
-      genomeInputs: NEURAL_NETWORK_INPUTS + 1,
-      genomeOutputs: NEURAL_NETWORK_OUTPUTS + 1,
+      genomeInputs: NEURAL_NETWORK_INPUTS,
+      genomeOutputs: NEURAL_NETWORK_OUTPUTS,
       strategyConfig,
       binanceClient,
       exchangeInfo,

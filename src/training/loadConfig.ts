@@ -47,10 +47,11 @@ export const NEURAL_NETWORK_INDICATORS_INPUTS = {
   VOL: IndicatorInputsConfig['VOL'] || false,
 };
 
-export const NEURAL_NETWORK_INPUTS = Object.entries(
-  NEURAL_NETWORK_INDICATORS_INPUTS
-).filter(([, val]) => val === true).length;
+export const NEURAL_NETWORK_INPUTS =
+  Object.entries(NEURAL_NETWORK_INDICATORS_INPUTS).filter(
+    ([, val]) => val === true
+  ).length + 2;
 
-export const NEURAL_NETWORK_OUTPUTS = 2; // Buy / Sell
+export const NEURAL_NETWORK_OUTPUTS = 3; // Buy / Sell / Close
 
 export const CANDLE_MIN_LENGTH = 150; // the trader start to trade when it can see X candles

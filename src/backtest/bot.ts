@@ -5,7 +5,7 @@ import cliProgress from 'cli-progress';
 import dayjs from 'dayjs';
 import safeRequire from 'safe-require';
 import { binanceClient } from '../init';
-import { decimalCeil, decimalFloor } from '../utils/math';
+import { decimalCeil, decimalFloor, normalize } from '../utils/math';
 import { clone } from '../utils/object';
 import { createDatabase, saveFuturesState } from './database';
 import { debugLastCandle, debugWallet, log, printDateBanner } from './debug';
@@ -561,10 +561,6 @@ export class BackTestBot {
       Math.abs(currentPrice - position.entryPrice) >=
       position.entryPrice * 0.01;
 
-    // Currency infos
-    const pricePrecision = getPricePrecision(pair, exchangeInfo);
-    const quantityPrecision = getQuantityPrecision(pair, exchangeInfo);
-
     // Check if we are in the trading sessions
     const isTradingSessionActive = this.isTradingSessionActive(
       candles[candles.length - 1].closeTime,
@@ -894,12 +890,23 @@ export class BackTestBot {
    * @param index
    */
   private look(index: number) {
+    let { risk, leverage } = this.strategyConfig;
     let visions: number[] = [];
 
     // Holding a trade ?
     const position = this.futuresWallet.position;
     const holdingTrade = position.size !== 0 ? 1 : 0;
     visions.push(holdingTrade);
+
+    // Current PNL
+    const pnl = normalize(
+      this.futuresWallet.totalUnrealizedProfit,
+      (-risk * this.futuresWallet.totalWalletBalance) / leverage,
+      (risk * this.futuresWallet.totalWalletBalance) / leverage,
+      0,
+      1
+    );
+    visions.push(pnl);
 
     // Indicators
     let indicatorVisions = this.indicators.map((indicator) => indicator[index]);
