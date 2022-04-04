@@ -1,5 +1,6 @@
 import { BotConfig, StrategyConfig } from '../init';
-import { BasicBackTestBot } from './bot';
+import { loadNeuralNetwork } from '../training/saveManager';
+import { BackTestBot } from './bot';
 
 if (process.env.NODE_ENV === 'test') {
   const BacktestConfig = BotConfig['backtest'];
@@ -7,11 +8,12 @@ if (process.env.NODE_ENV === 'test') {
   const endDate = new Date(BacktestConfig['end_date']);
   const initialCapital = BacktestConfig['initial_capital'];
 
-  const bot = new BasicBackTestBot(
+  const bot = new BackTestBot(
     StrategyConfig,
     startDate,
     endDate,
-    initialCapital
+    initialCapital,
+    loadNeuralNetwork()
   );
 
   bot.prepare();

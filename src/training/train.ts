@@ -19,7 +19,10 @@ import {
   winRate,
   profitRatio,
   maxRelativeDrawdown,
+  startDateTest,
+  endDateTest,
 } from './loadConfig';
+import { BackTestBot } from '../backtest/bot';
 
 /**
  * To print a value with a color code (green when it's positive, red if it's negative)
@@ -195,6 +198,17 @@ export async function train(useSave?: boolean) {
 
     saveNeuralNetwork(population.bestPlayer.brain);
   }
+
+  let test = new BackTestBot(
+    strategyConfig,
+    startDateTest,
+    endDateTest,
+    initialCapital,
+    population.bestPlayer.brain
+  );
+
+  test.prepare();
+  test.run();
 }
 
 // Use save file of the previous neural network

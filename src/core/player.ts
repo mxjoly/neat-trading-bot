@@ -242,9 +242,14 @@ class Player {
       risk,
       tradingSession,
       riskManagement,
+      trendFilter,
       maxTradeDuration,
     } = strategyConfig;
     const pair = asset + base;
+
+    // Check the trend
+    const useLongPosition = trendFilter ? trendFilter(candles) === 1 : true;
+    const useShortPosition = trendFilter ? trendFilter(candles) === -1 : true;
 
     // Balance information
     const assetBalance = this.wallet.totalWalletBalance;
@@ -266,6 +271,9 @@ class Player {
       this.decision[2] > 0.6 &&
       (hasShortPosition || hasLongPosition);
 
+    // Conditions to take or not a position
+    const canTakeLongPosition = useLongPosition && position.size === 0;
+    const canTakeShortPosition = useShortPosition && position.size === 0;
     const canClosePosition =
       Math.abs(currentPrice - position.entryPrice) >=
       position.entryPrice * 0.01;
@@ -334,10 +342,15 @@ class Player {
       exchangeInfo,
     });
 
-    if ((isTradingSessionActive || position.size !== 0) && isBuySignal) {
+    if (
+      (isTradingSessionActive || position.size !== 0) &&
+      canTakeLongPosition &&
+      isBuySignal
+    ) {
       this.orderMarket(pair, currentPrice, quantity, 'BUY');
     } else if (
       (isTradingSessionActive || position.size !== 0) &&
+      canTakeShortPosition &&
       isSellSignal
     ) {
       this.orderMarket(pair, currentPrice, quantity, 'SELL');

@@ -2,6 +2,7 @@
 build
 data
 temp
+reports
 
 # Logs
 logs

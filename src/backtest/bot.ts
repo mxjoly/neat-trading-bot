@@ -52,10 +52,6 @@ export const DEBUG = process.argv[2]
     : false
   : false;
 
-// Max length of the candle arrays needed for the strategy and the calculation of indicators
-// Better to have the minimum to get a higher performance
-const MAX_CANDLE_LENGTH = 200;
-
 // The bot starts to trade when it has X available candles
 const MIN_CANDLE_LENGTH = 150;
 
@@ -68,7 +64,7 @@ const MAKER_FEES = BotConfig['maker_fees_futures']; // %
 /**
  * Basic class
  */
-export class BasicBackTestBot {
+export class BackTestBot {
   // Configuration
   protected strategyConfig: StrategyConfig;
 
@@ -112,13 +108,15 @@ export class BasicBackTestBot {
     strategyConfig: StrategyConfig,
     startDate: Date,
     endDate: Date,
-    initialCapital: number
+    initialCapital: number,
+    brain: Genome
   ) {
     this.strategyConfig = strategyConfig;
     this.startDate = startDate;
     this.endDate = endDate;
     this.initialCapital = initialCapital;
     this.maxBalance = initialCapital;
+    this.brain = brain;
   }
 
   /**
