@@ -1,5 +1,3 @@
-import fs from 'fs';
-import path from 'path';
 import { BotConfig } from '../init';
 
 // ========================== STRATEGY CONFIG  ========================== //
@@ -41,7 +39,6 @@ export const NEURAL_NETWORK_INDICATORS_INPUTS = {
   RSI: IndicatorInputsConfig['RSI'] || false,
   WILLIAM_R: IndicatorInputsConfig['WILLIAM_R'] || false,
   KIJUN: IndicatorInputsConfig['KIJUN'] || false,
-  VWAP: IndicatorInputsConfig['VWAP'] || false,
   VOL_OSC: IndicatorInputsConfig['VOL_OSC'] || false,
   PRICE_CHANGE: IndicatorInputsConfig['PRICE_CHANGE'] || false,
   VOL: IndicatorInputsConfig['VOL'] || false,

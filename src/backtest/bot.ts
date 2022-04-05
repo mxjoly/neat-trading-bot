@@ -200,9 +200,7 @@ export class BackTestBot {
     if (!DEBUG) bar.start(duration, 0);
 
     // Time loop
-    for (let i = 0; i < this.historicCandleData.length; i++) {
-      if (i <= MIN_CANDLE_LENGTH) continue;
-
+    for (let i = MIN_CANDLE_LENGTH; i < this.historicCandleData.length; i++) {
       let candles = this.historicCandleData.slice(i - MIN_CANDLE_LENGTH, i);
       let currentCandle = candles[candles.length - 1];
       let currentDate = currentCandle.closeTime;
@@ -213,7 +211,7 @@ export class BackTestBot {
       debugLastCandle(currentCandle);
 
       // Neat
-      this.look(i);
+      this.look(i, candles); // The bot see the future...
       this.think();
 
       // Check the current trades/positions
@@ -866,7 +864,7 @@ export class BackTestBot {
    * Get the inputs for the neural network
    * @param index
    */
-  private look(index: number) {
+  private look(index: number, candles: CandleData[]) {
     let { risk, leverage } = this.strategyConfig;
     let visions: number[] = [];
 
@@ -887,6 +885,9 @@ export class BackTestBot {
 
     // Indicators
     let indicatorVisions = this.indicators.map((indicator) => indicator[index]);
+    // let indicatorVisions = calculateIndicators(candles).map(
+    //   (indicator) => indicator[indicator.length - 1]
+    // );
 
     this.visions = visions.concat(indicatorVisions);
   }

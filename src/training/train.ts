@@ -159,13 +159,8 @@ export async function train(useSave?: boolean) {
   let indicators = calculateIndicators(historicCandleData);
 
   for (let gen = 0; gen < totalGenerations; gen++) {
-    for (let i = 0; i < historicCandleData.length; i++) {
-      if (i < CANDLE_MIN_LENGTH) continue;
-
-      let candles = historicCandleData.slice(
-        i - CANDLE_MIN_LENGTH < 0 ? 0 : i - CANDLE_MIN_LENGTH,
-        i
-      );
+    for (let i = CANDLE_MIN_LENGTH; i < historicCandleData.length; i++) {
+      let candles = historicCandleData.slice(i - CANDLE_MIN_LENGTH, i);
       let currentPrice = candles[candles.length - 1].close;
 
       if (!population.done() && i < historicCandleData.length - 1) {
@@ -174,7 +169,7 @@ export async function train(useSave?: boolean) {
           strategyConfig,
           candles,
           currentPrice,
-          indicators.map((v) => v[i])
+          indicators.map((v) => v[i]) // The bot see the future...
         );
       } else {
         // genetic algorithm

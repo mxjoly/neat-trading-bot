@@ -12,8 +12,8 @@
     "start_date_test": "2022-01-01 00:00:00",
     "end_date_test": "2022-03-01 00:00:00",
     "initial_capital": 10000,
-    "population": 100,
-    "generations": 100,
+    "population": 500,
+    "generations": 1000,
     "goals": {
       "win_rate": null,
       "profit_ratio": null,
@@ -32,7 +32,6 @@
         "RSI": true,
         "WILLIAM_R": true,
         "KIJUN": true,
-        "VWAP": true,
         "VOL_OSC": true,
         "PRICE_CHANGE": true,
         "VOL": true

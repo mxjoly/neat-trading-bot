@@ -12,7 +12,6 @@ import {
   MFI,
   ROC,
   RSI,
-  VWAP,
   WilliamsR,
 } from 'technicalindicators';
 
@@ -22,15 +21,14 @@ import {
  */
 export function calculateIndicators(candles: CandleData[]) {
   // EMA21 (difference between current price and the value of ema)
-  const ema21 =
-    NEURAL_NETWORK_INDICATORS_INPUTS.EMA21 === true
-      ? EMA.calculate({
-          period: 21,
-          values: candles.map((c) => c.close),
-        }).map(
-          (v, i, l) => (candles[candles.length - (l.length - i)].close - v) / v
-        )
-      : null;
+  const ema21 = NEURAL_NETWORK_INDICATORS_INPUTS.EMA21
+    ? EMA.calculate({
+        period: 21,
+        values: candles.map((c) => c.close),
+      }).map(
+        (v, i, l) => (candles[candles.length - (l.length - i)].close - v) / v
+      )
+    : null;
 
   // EMA50 (difference between current price and the value of ema)
   const ema50 = NEURAL_NETWORK_INDICATORS_INPUTS.EMA50
@@ -134,16 +132,6 @@ export function calculateIndicators(candles: CandleData[]) {
       )
     : null;
 
-  // Volume Weighted Average Price
-  const vwap = NEURAL_NETWORK_INDICATORS_INPUTS.VWAP
-    ? VWAP.calculate({
-        close: candles.map((c) => c.close),
-        high: candles.map((c) => c.high),
-        low: candles.map((c) => c.low),
-        volume: candles.map((c) => c.volume),
-      })
-    : null;
-
   // Oscillator volume
   const volOsc = NEURAL_NETWORK_INDICATORS_INPUTS.VOL_OSC
     ? VolumeOscillator.calculate({
@@ -179,7 +167,6 @@ export function calculateIndicators(candles: CandleData[]) {
     roc,
     rsi,
     williamR,
-    vwap,
     kijun,
     volOsc,
     vol,
