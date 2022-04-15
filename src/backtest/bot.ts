@@ -201,7 +201,7 @@ export class BackTestBot {
 
     // Time loop
     for (let i = MIN_CANDLE_LENGTH; i < this.historicCandleData.length; i++) {
-      let candles = this.historicCandleData.slice(i - MIN_CANDLE_LENGTH, i);
+      let candles = this.historicCandleData.slice(i - MIN_CANDLE_LENGTH, i + 1);
       let currentCandle = candles[candles.length - 1];
       let currentDate = currentCandle.closeTime;
       let currentPrice = currentCandle.close;
@@ -211,7 +211,7 @@ export class BackTestBot {
       debugLastCandle(currentCandle);
 
       // Neat
-      this.look(i, candles); // The bot see the future...
+      this.look(i, candles);
       this.think();
 
       // Check the current trades/positions

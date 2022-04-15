@@ -7,10 +7,10 @@ import { getPositionSizeByPercent } from './riskManagement';
 const config: StrategyConfig = {
   asset: 'BTC',
   base: 'USDT',
-  interval: CandleChartInterval.FIVE_MINUTES,
+  interval: CandleChartInterval.FIFTEEN_MINUTES,
   risk: 1,
   leverage: 20,
-  maxTradeDuration: 6,
+  maxTradeDuration: 12,
   riskManagement: getPositionSizeByPercent,
 };
 export default config;

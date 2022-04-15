@@ -157,21 +157,8 @@ class Player {
   ) {
     this.lifespan++;
 
-    let {
-      totalLoss,
-      totalProfit,
-      totalFees,
-      winningTrades,
-      totalTrades,
-      maxRelativeDrawdown,
-    } = this.stats;
-
-    const profitRatio = totalProfit / (Math.abs(totalLoss) + totalFees);
+    let { totalLoss, totalProfit, totalFees } = this.stats;
     const totalNetProfit = totalProfit - (Math.abs(totalLoss) + totalFees);
-    const winRate = winningTrades / totalTrades;
-    const roi =
-      (this.wallet.totalWalletBalance - this.initialCapital) /
-      this.initialCapital;
 
     // Kill the bad traders
     if (this.wallet.totalWalletBalance <= 0) {
@@ -180,32 +167,7 @@ class Player {
     }
 
     // Kill the traders that doesn't trades
-    if (this.lifespan > 100 && totalLoss === 0 && totalProfit === 0) {
-      this.dead = true;
-      return;
-    }
-
-    // Kill the traders that take too much risk
-    if (
-      this.goals.maxRelativeDrawdown &&
-      maxRelativeDrawdown < this.goals.maxRelativeDrawdown
-    ) {
-      this.dead = true;
-      return;
-    }
-
-    // Kill the traders that have a bad winRate
-    if (this.goals.winRate && !isNaN(winRate) && winRate < this.goals.winRate) {
-      this.dead = true;
-      return;
-    }
-
-    // Kill the traders with a bad risk reward
-    if (
-      this.goals.profitRatio &&
-      !isNaN(profitRatio) &&
-      profitRatio < this.goals.profitRatio
-    ) {
+    if (this.lifespan > 500 && totalLoss === 0 && totalProfit === 0) {
       this.dead = true;
       return;
     }
@@ -661,8 +623,63 @@ class Player {
    * Genetic algorithm
    */
   public calculateFitness() {
+    let {
+      totalLoss,
+      totalProfit,
+      totalFees,
+      winningTrades,
+      lostTrades,
+      totalTrades,
+      maxRelativeDrawdown,
+      longWinningTrades,
+      shortWinningTrades,
+      longLostTrades,
+      shortLostTrades,
+    } = this.stats;
+
+    const profitRatio = totalProfit / (Math.abs(totalLoss) + totalFees);
+    const totalNetProfit = totalProfit - (Math.abs(totalLoss) + totalFees);
+    const winRate = winningTrades / totalTrades;
+    const lossRate = lostTrades / totalTrades;
+    const roi =
+      (this.wallet.totalWalletBalance - this.initialCapital) /
+      this.initialCapital;
+    const avgProfit = totalProfit / (longWinningTrades + shortWinningTrades);
+    const avgLoss = totalLoss / (longLostTrades + shortLostTrades);
+
     // Fitness Formulas
-    this.fitness = this.wallet.totalWalletBalance;
+    // this.fitness = avgProfit * winRate - avgLoss * lossRate;
+    this.fitness =
+      winRate * profitRatio * (roi / Math.abs(maxRelativeDrawdown));
+
+    if (isNaN(this.fitness)) {
+      this.fitness = 0;
+      return;
+    }
+
+    if (this.goals.minimumTrades && totalTrades < this.goals.minimumTrades) {
+      let diff = totalTrades - this.goals.minimumTrades;
+      // this.fitness /= 2 - diff;
+      this.fitness = 0;
+    }
+
+    if (
+      this.goals.maxRelativeDrawdown &&
+      maxRelativeDrawdown < this.goals.maxRelativeDrawdown
+    ) {
+      let diff = maxRelativeDrawdown - this.goals.maxRelativeDrawdown;
+      this.fitness /= 2 - diff;
+    }
+
+    if (this.goals.profitRatio && profitRatio < this.goals.profitRatio) {
+      let diff = profitRatio - this.goals.profitRatio;
+      this.fitness /= 2 - diff;
+    }
+
+    if (this.goals.winRate && winRate < this.goals.winRate) {
+      let diff = winRate - this.goals.winRate;
+      this.fitness /= 2 - winRate;
+    }
   }
 
   public crossover(parent: Player) {

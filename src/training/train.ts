@@ -21,6 +21,7 @@ import {
   maxRelativeDrawdown,
   startDateTest,
   endDateTest,
+  minimumTrades,
 } from './loadConfig';
 import { BackTestBot } from '../backtest/bot';
 
@@ -140,6 +141,7 @@ export async function train(useSave?: boolean) {
     winRate: winRate,
     profitRatio: profitRatio,
     maxRelativeDrawdown: maxRelativeDrawdown,
+    minimumTrades: minimumTrades,
   };
 
   let population = new Population({
@@ -160,7 +162,7 @@ export async function train(useSave?: boolean) {
 
   for (let gen = 0; gen < totalGenerations; gen++) {
     for (let i = CANDLE_MIN_LENGTH; i < historicCandleData.length; i++) {
-      let candles = historicCandleData.slice(i - CANDLE_MIN_LENGTH, i);
+      let candles = historicCandleData.slice(i - CANDLE_MIN_LENGTH, i + 1);
       let currentPrice = candles[candles.length - 1].close;
 
       if (!population.done() && i < historicCandleData.length - 1) {
@@ -169,7 +171,7 @@ export async function train(useSave?: boolean) {
           strategyConfig,
           candles,
           currentPrice,
-          indicators.map((v) => v[i]) // The bot see the future...
+          indicators.map((v) => v[i])
         );
       } else {
         // genetic algorithm

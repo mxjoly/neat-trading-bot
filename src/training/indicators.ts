@@ -151,6 +151,26 @@ export function calculateIndicators(candles: CandleData[]) {
     ? candles.map((c) => (c.close - c.open) / c.open)
     : null;
 
+  // Candle Open
+  const candleOpen = NEURAL_NETWORK_INDICATORS_INPUTS.CANDLE_OPEN
+    ? candles.map((c) => c.open)
+    : null;
+
+  // Candle High
+  const candleHigh = NEURAL_NETWORK_INDICATORS_INPUTS.CANDLE_HIGH
+    ? candles.map((c) => c.high)
+    : null;
+
+  // Candle Low
+  const candleLow = NEURAL_NETWORK_INDICATORS_INPUTS.CANDLE_LOW
+    ? candles.map((c) => c.low)
+    : null;
+
+  // Candle Close
+  const candleClose = NEURAL_NETWORK_INDICATORS_INPUTS.CANDLE_CLOSE
+    ? candles.map((c) => c.close)
+    : null;
+
   // We save min max of the last training (sort of memory)
   let minMax: { min: number; max: number }[] = loadMinMax() || [];
   let saveMinMaxToFile = minMax.length === 0;
@@ -171,6 +191,10 @@ export function calculateIndicators(candles: CandleData[]) {
     volOsc,
     vol,
     priceChange,
+    candleOpen,
+    candleHigh,
+    candleLow,
+    candleClose,
   ]
     .filter((i) => i !== null)
     .map((values, index) => {

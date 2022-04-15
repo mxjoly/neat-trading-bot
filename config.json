@@ -12,12 +12,13 @@
     "start_date_test": "2022-01-01 00:00:00",
     "end_date_test": "2022-03-01 00:00:00",
     "initial_capital": 10000,
-    "population": 500,
-    "generations": 1000,
+    "population": 100,
+    "generations": 2000,
     "goals": {
-      "win_rate": null,
-      "profit_ratio": null,
-      "max_relative_drawdown": -0.03
+      "win_rate": 0.7,
+      "profit_ratio": 2,
+      "max_relative_drawdown": -0.05,
+      "minimum_trades": 150
     },
     "neural_network": {
       "indicator_inputs": {
@@ -34,7 +35,11 @@
         "KIJUN": true,
         "VOL_OSC": true,
         "PRICE_CHANGE": true,
-        "VOL": true
+        "VOL": true,
+        "CANDLE_OPEN": false,
+        "CANDLE_HIGH": false,
+        "CANDLE_LOW": false,
+        "CANDLE_CLOSE": false
       }
     }
   }

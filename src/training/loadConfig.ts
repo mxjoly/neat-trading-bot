@@ -25,6 +25,7 @@ export const endDateTest = NeatConfig['end_date_test'];
 export const winRate = GoalsConfig['win_rate'];
 export const profitRatio = GoalsConfig['profit_ratio'];
 export const maxRelativeDrawdown = GoalsConfig['max_relative_drawdown'];
+export const minimumTrades = GoalsConfig['minimum_trades'];
 
 // Configure the inputs of the neural network
 export const NEURAL_NETWORK_INDICATORS_INPUTS = {
@@ -42,6 +43,10 @@ export const NEURAL_NETWORK_INDICATORS_INPUTS = {
   VOL_OSC: IndicatorInputsConfig['VOL_OSC'] || false,
   PRICE_CHANGE: IndicatorInputsConfig['PRICE_CHANGE'] || false,
   VOL: IndicatorInputsConfig['VOL'] || false,
+  CANDLE_OPEN: IndicatorInputsConfig['CANDLE_OPEN'] || false,
+  CANDLE_HIGH: IndicatorInputsConfig['CANDLE_HIGH'] || false,
+  CANDLE_LOW: IndicatorInputsConfig['CANDLE_LOW'] || false,
+  CANDLE_CLOSE: IndicatorInputsConfig['CANDLE_CLOSE'] || false,
 };
 
 export const NEURAL_NETWORK_INPUTS =
