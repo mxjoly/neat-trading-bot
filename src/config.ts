@@ -9,7 +9,7 @@ const config: StrategyConfig = {
   asset: 'BTC',
   base: 'USDT',
   interval: CandleChartInterval.FIFTEEN_MINUTES,
-  risk: 1,
+  risk: 0.01,
   leverage: 20,
   exitStrategy: (price, candles, pricePrecision, side) =>
     basicStrategy(price, pricePrecision, side, {

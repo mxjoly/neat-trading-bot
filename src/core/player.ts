@@ -491,10 +491,21 @@ class Player {
                   this.stats.longTrades++;
                 }
 
-                if (hasPosition && entryPrice >= price)
+                // Update profit and loss
+                if (pnl >= 0) {
+                  this.stats.totalProfit += pnl;
+                } else {
+                  this.stats.totalLoss += pnl;
+                }
+
+                if (hasPosition && entryPrice >= price) {
                   this.stats.shortWinningTrades++;
-                if (hasPosition && entryPrice < price)
+                  this.stats.winningTrades++;
+                }
+                if (hasPosition && entryPrice < price) {
                   this.stats.shortLostTrades++;
+                  this.stats.lostTrades++;
+                }
                 this.stats.totalFees += fees;
               }
 
@@ -522,8 +533,21 @@ class Player {
                 position.margin = Math.abs(position.size * price) / leverage;
 
                 this.stats.totalFees += fees;
-                if (price <= entryPrice) this.stats.shortWinningTrades++;
-                else this.stats.shortLostTrades++;
+
+                // Update profit and loss
+                if (pnl >= 0) {
+                  this.stats.totalProfit += pnl;
+                } else {
+                  this.stats.totalLoss += pnl;
+                }
+
+                if (price <= entryPrice) {
+                  this.stats.shortWinningTrades++;
+                  this.stats.winningTrades++;
+                } else {
+                  this.stats.shortLostTrades++;
+                  this.stats.lostTrades++;
+                }
               }
             }
           }
@@ -603,10 +627,21 @@ class Player {
                   this.stats.shortTrades++;
                 }
 
-                if (hasPosition && entryPrice <= price)
+                // Update profit and loss
+                if (pnl >= 0) {
+                  this.stats.totalProfit += pnl;
+                } else {
+                  this.stats.totalLoss += pnl;
+                }
+
+                if (hasPosition && entryPrice <= price) {
                   this.stats.longWinningTrades++;
-                if (hasPosition && entryPrice > price)
+                  this.stats.winningTrades++;
+                }
+                if (hasPosition && entryPrice > price) {
                   this.stats.longLostTrades++;
+                  this.stats.lostTrades++;
+                }
                 this.stats.totalFees += fees;
               }
 
@@ -633,8 +668,21 @@ class Player {
                 position.margin = Math.abs(position.size * price) / leverage;
 
                 this.stats.totalFees += fees;
-                if (price >= entryPrice) this.stats.longWinningTrades++;
-                else this.stats.longLostTrades++;
+
+                // Update profit and loss
+                if (pnl >= 0) {
+                  this.stats.totalProfit += pnl;
+                } else {
+                  this.stats.totalLoss += pnl;
+                }
+
+                if (price >= entryPrice) {
+                  this.stats.longWinningTrades++;
+                  this.stats.winningTrades;
+                } else {
+                  this.stats.longLostTrades++;
+                  this.stats.lostTrades++;
+                }
               }
             }
           }
@@ -844,21 +892,21 @@ class Player {
           : true // Take profit or Stop Loss
         : this.wallet.availableBalance >= baseCost; // New position
 
-    // if (canOrder) {
-    let order: FuturesOpenOrder = {
-      id: Math.random().toString(16).slice(2),
-      pair,
-      type: 'LIMIT',
-      positionSide,
-      price,
-      quantity,
-    };
-    this.openOrders.push(order);
-    // } else {
-    //   console.error(
-    //     `Limit order for the pair ${pair} cannot be placed. quantity=${quantity} price=${price}`
-    //   );
-    // }
+    if (canOrder) {
+      let order: FuturesOpenOrder = {
+        id: Math.random().toString(16).slice(2),
+        pair,
+        type: 'LIMIT',
+        positionSide,
+        price,
+        quantity,
+      };
+      this.openOrders.push(order);
+    } else {
+      // console.error(
+      //   `Limit order for the pair ${pair} cannot be placed. quantity=${quantity} price=${price}`
+      // );
+    }
   }
 
   /**
@@ -1085,9 +1133,10 @@ class Player {
     const avgLoss = totalLoss / (longLostTrades + shortLostTrades);
 
     // Fitness Formulas
+    this.fitness = this.wallet.totalWalletBalance;
     // this.fitness = avgProfit * winRate - avgLoss * lossRate;
-    this.fitness =
-      winRate * profitRatio * (roi / Math.abs(maxRelativeDrawdown));
+    // this.fitness =
+    //   winRate * profitRatio * (roi / Math.abs(maxRelativeDrawdown));
 
     if (isNaN(this.fitness)) {
       this.fitness = 0;
