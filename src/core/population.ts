@@ -17,8 +17,8 @@ class Population {
   constructor({ size, player }: { size: number; player: PlayerParams }) {
     this.players = [];
     this.bestPlayer = null;
-    this.bestScore = 0;
-    this.globalBestScore = 0;
+    this.bestScore = -Infinity;
+    this.globalBestScore = -Infinity;
     this.generation = 1;
     this.innovationHistory = [];
     this.generationPlayers = [];

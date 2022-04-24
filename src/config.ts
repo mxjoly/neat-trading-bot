@@ -1,5 +1,6 @@
 import { CandleChartInterval } from 'binance-api-node';
-import { getPositionSizeByPercent } from './riskManagement';
+import { getPositionSizeByRisk } from './riskManagement';
+import { basicStrategy } from './exitStrategy';
 
 /**
  * Default config for neat algorithm
@@ -10,7 +11,11 @@ const config: StrategyConfig = {
   interval: CandleChartInterval.FIFTEEN_MINUTES,
   risk: 1,
   leverage: 20,
-  maxTradeDuration: 12,
-  riskManagement: getPositionSizeByPercent,
+  exitStrategy: (price, candles, pricePrecision, side) =>
+    basicStrategy(price, pricePrecision, side, {
+      profitTarget: 0.01,
+      lossTolerance: 0.005,
+    }),
+  riskManagement: getPositionSizeByRisk,
 };
 export default config;

@@ -12,6 +12,20 @@ interface FuturesWallet {
   position: Position;
 }
 
+interface FuturesOpenOrder {
+  id: string;
+  pair: string;
+  price: number;
+  quantity: number;
+  positionSide: 'LONG' | 'SHORT';
+  type: 'MARKET' | 'LIMIT' | 'TRAILING_STOP_MARKET';
+  trailingStop?: {
+    callbackRate: number; // % between 0-1
+    activation: { changePercentage?: number; percentageToTP: number }; // % between 0-1
+    status: 'PENDING' | 'ACTIVE';
+  };
+}
+
 interface Position {
   pair: string;
   size: number; // Asset size

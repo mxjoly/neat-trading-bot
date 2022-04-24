@@ -54,6 +54,6 @@ export const NEURAL_NETWORK_INPUTS =
     ([, val]) => val === true
   ).length + 2;
 
-export const NEURAL_NETWORK_OUTPUTS = 3; // Buy / Sell / Close
+export const NEURAL_NETWORK_OUTPUTS = 2; // Buy / Sell
 
 export const CANDLE_MIN_LENGTH = 150; // the trader start to trade when it can see X candles

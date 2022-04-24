@@ -6,6 +6,8 @@ interface StrategyConfig {
   risk: number; // % of total balance to risk in a trade
   tradingSession?: TradingSession; // The robot trades only during these session
   maxTradeDuration?: number; // Max duration of a trade in the unit of the loopInterval
+  trailingStopConfig?: TrailingStopConfig; // Configuration of a trailing stop
+  exitStrategy?: ExitStrategy; // Placement of take profits and stop loss
   trendFilter?: TrendFilter; // Trend filter - If the trend is up, only take long, else take only short
   riskManagement: RiskManagement;
 }
@@ -19,6 +21,25 @@ interface CandleData {
   openTime: Date;
   closeTime: Date;
 }
+
+// Strategy for Take Profits and Stop Loss
+type ExitStrategy = (
+  price?: number,
+  candles?: CandlesDataMultiTimeFrames,
+  pricePrecision?: number,
+  side: OrderSide // type from binance api lib
+) => {
+  takeProfit?: number;
+  stopLoss?: number;
+};
+
+type TrailingStopConfig = {
+  // Activation price of trailing stop calculated by :
+  // changePercentage: the price moves X% (0 to 1) in the positive
+  // percentageToTP: the price reach X% (0 to 1) of the nearest take profit
+  activation: { changePercentage?: number; percentageToTP: number };
+  callbackRate: number; // Percentage between 0 and 1 - stop loss if the price increase/decrease of % from last candle
+};
 
 type TrendFilter = (candles: CandleData[]) => Trend;
 
