@@ -49,10 +49,9 @@ export const NEURAL_NETWORK_INDICATORS_INPUTS = {
   CANDLE_CLOSE: IndicatorInputsConfig['CANDLE_CLOSE'] || false,
 };
 
-export const NEURAL_NETWORK_INPUTS =
-  Object.entries(NEURAL_NETWORK_INDICATORS_INPUTS).filter(
-    ([, val]) => val === true
-  ).length + 2;
+export const NEURAL_NETWORK_INPUTS = Object.entries(
+  NEURAL_NETWORK_INDICATORS_INPUTS
+).filter(([, val]) => val === true).length;
 
 export const NEURAL_NETWORK_OUTPUTS = 2; // Buy / Sell
 

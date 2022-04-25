@@ -56,3 +56,16 @@ export function debugWallet(futuresWallet: FuturesWallet) {
     } | pnl: ${decimalFloor(position.unrealizedProfit, 2)} ]`;
   log(positionsString, chalk.grey);
 }
+
+export function debugOpenOrders(futuresOpenOrders: FuturesOpenOrder[]) {
+  if (futuresOpenOrders.length > 0) {
+    let ordersString = `orders: [ ${futuresOpenOrders
+      .map(
+        (o) =>
+          `{ id: ${o.id} | pair: ${o.pair} | type: ${o.type} | side: ${o.positionSide} | qty: ${o.quantity} | price: ${o.price} }`
+      )
+      .join(' , ')} ]`;
+
+    log(ordersString, chalk.grey);
+  }
+}

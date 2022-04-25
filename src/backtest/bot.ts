@@ -5,8 +5,14 @@ import cliProgress from 'cli-progress';
 import dayjs from 'dayjs';
 import safeRequire from 'safe-require';
 import { binanceClient } from '../init';
-import { decimalCeil, decimalFloor, normalize } from '../utils/math';
-import { debugLastCandle, debugWallet, log, printDateBanner } from './debug';
+import { decimalCeil, decimalFloor } from '../utils/math';
+import {
+  debugLastCandle,
+  debugOpenOrders,
+  debugWallet,
+  log,
+  printDateBanner,
+} from './debug';
 import generateHTMLReport from './generateReport';
 import { Counter } from '../tools/counter';
 import { durationBetweenDates } from '../utils/timeFrame';
@@ -15,6 +21,7 @@ import Genome from '../core/genome';
 import { calculateIndicators } from '../training/indicators';
 import { getPricePrecision, getQuantityPrecision } from '../utils/currencyInfo';
 import { calculateActivationPrice } from '../utils/trailingStop';
+import { isOnTradingSession } from '../utils/tradingSession';
 
 // ====================================================================== //
 
@@ -109,6 +116,10 @@ export class BackTestBot {
     this.initialCapital = initialCapital;
     this.maxBalance = initialCapital;
     this.brain = brain;
+
+    if (this.strategyConfig.maxTradeDuration) {
+      this.counter = new Counter(this.strategyConfig.maxTradeDuration);
+    }
   }
 
   /**
@@ -131,9 +142,6 @@ export class BackTestBot {
     };
 
     this.futuresOpenOrders = [];
-
-    // Initialize the counters
-    this.counter = new Counter(this.strategyConfig.maxTradeDuration);
 
     this.prepareStrategyReport();
   }
@@ -239,6 +247,7 @@ export class BackTestBot {
 
       // Debugging
       debugWallet(this.futuresWallet);
+      debugOpenOrders(this.futuresOpenOrders);
       log(''); // \n
 
       if (!DEBUG)
@@ -505,7 +514,7 @@ export class BackTestBot {
       asset,
       base,
       risk,
-      tradingSession,
+      tradingSessions,
       maxTradeDuration,
       trailingStopConfig,
       trendFilter,
@@ -539,9 +548,9 @@ export class BackTestBot {
     const canTakeShortPosition = useShortPosition && position.size === 0;
 
     // Check if we are in the trading sessions
-    const isTradingSessionActive = this.isTradingSessionActive(
+    const isTradingSessionActive = isOnTradingSession(
       candles[candles.length - 1].closeTime,
-      tradingSession
+      tradingSessions
     );
 
     // Open orders
@@ -552,7 +561,11 @@ export class BackTestBot {
     const quantityPrecision = getQuantityPrecision(pair, exchangeInfo);
 
     // The current position is too long
-    if (maxTradeDuration && (hasShortPosition || hasLongPosition)) {
+    if (
+      this.counter &&
+      maxTradeDuration &&
+      (hasShortPosition || hasLongPosition)
+    ) {
       this.counter.decrement();
       if (this.counter.getValue() == 0) {
         log(
@@ -576,6 +589,7 @@ export class BackTestBot {
 
     // Reset the counter if a previous trade close the position
     if (
+      this.counter &&
       maxTradeDuration &&
       !hasLongPosition &&
       !hasShortPosition &&
@@ -1038,29 +1052,6 @@ export class BackTestBot {
   }
 
   /**
-   * Check if we are in the trading sessions and if the robot can trade
-   * @param current
-   * @param tradingSession
-   */
-  private isTradingSessionActive(
-    current: Date,
-    tradingSession?: TradingSession
-  ) {
-    if (tradingSession) {
-      const currentTime = dayjs(current);
-      const currentDay = currentTime.format('YYYY-MM-DD');
-      const startSessionTime = `${currentDay} ${tradingSession.start}:00`;
-      const endSessionTime = `${currentDay} ${tradingSession.end}:00`;
-      return dayjs(currentTime.format('YYYY-MM-DD HH:mm:ss')).isBetween(
-        startSessionTime,
-        endSessionTime
-      );
-    } else {
-      return true;
-    }
-  }
-
-  /**
    * Check if the margin is enough to maintain the position. If not, the position is liquidated
    * @param pair
    * @param currentPrice The current price in the main loop
@@ -1327,14 +1318,6 @@ export class BackTestBot {
         quantity,
       };
       this.futuresOpenOrders.push(order);
-      log(
-        `Create a new ${
-          positionSide === 'LONG' ? 'buy' : 'sell'
-        } limit order #${order.id} on ${pair} with size ${Math.abs(
-          quantity
-        )} at ${price}`,
-        chalk.magenta
-      );
     } else {
       console.error(
         `Limit order for the pair ${pair} cannot be placed. quantity=${quantity} price=${price}`
@@ -1388,10 +1371,6 @@ export class BackTestBot {
         },
       };
       this.futuresOpenOrders.push(order);
-      log(
-        `Create a trailing stop order #${order.id} on ${pair}`,
-        chalk.magenta
-      );
     } else {
       console.error(
         `Trailing stop order for the pair ${pair} cannot be placed`
@@ -1404,31 +1383,7 @@ export class BackTestBot {
    * @param index
    */
   private look(index: number, candles: CandleData[]) {
-    let { risk, leverage } = this.strategyConfig;
-    let visions: number[] = [];
-
-    // Holding a trade ?
-    const position = this.futuresWallet.position;
-    const holdingTrade = position.size !== 0 ? 1 : 0;
-    visions.push(holdingTrade);
-
-    // Current PNL
-    const pnl = normalize(
-      this.futuresWallet.totalUnrealizedProfit,
-      (-risk * this.futuresWallet.totalWalletBalance) / leverage,
-      (risk * this.futuresWallet.totalWalletBalance) / leverage,
-      0,
-      1
-    );
-    visions.push(pnl);
-
-    // Indicators
-    let indicatorVisions = this.indicators.map((indicator) => indicator[index]);
-    // let indicatorVisions = calculateIndicators(candles).map(
-    //   (indicator) => indicator[indicator.length - 1]
-    // );
-
-    this.visions = visions.concat(indicatorVisions);
+    this.visions = this.indicators.map((indicator) => indicator[index]);
   }
 
   /**

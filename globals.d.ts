@@ -7,6 +7,7 @@ interface StrategyConfig {
   tradingSession?: TradingSession; // The robot trades only during these session
   maxTradeDuration?: number; // Max duration of a trade in the unit of the loopInterval
   trailingStopConfig?: TrailingStopConfig; // Configuration of a trailing stop
+  tradingSessions?: TradingSession[]; // The robot trades only during these sessions
   exitStrategy?: ExitStrategy; // Placement of take profits and stop loss
   trendFilter?: TrendFilter; // Trend filter - If the trend is up, only take long, else take only short
   riskManagement: RiskManagement;
@@ -59,4 +60,8 @@ type RiskManagement = (options: RiskManagementOptions) => number; // Return the 
 // type QueryOrderResult from the library binance-api-node
 type TradeManagement = (orderInfos: QueryOrderResult[]) => void;
 
-type TradingSession = { start: string; end: string }; // HH:mm
+type TradingSession = {
+  day: 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 (Sunday) to 6 (Saturday)
+  start: { hour: number; minute: number };
+  end: { hour: number; minutes };
+};

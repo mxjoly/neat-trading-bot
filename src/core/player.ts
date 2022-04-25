@@ -1,11 +1,10 @@
 import { Binance, ExchangeInfo, OrderSide } from 'binance-api-node';
-import dayjs from 'dayjs';
 import { Counter } from '../tools/counter';
 import Genome from './genome';
 import { getPricePrecision, getQuantityPrecision } from '../utils/currencyInfo';
 import { BotConfig } from '../init';
-import { normalize } from '../utils/math';
 import { calculateActivationPrice } from '../utils/trailingStop';
+import { isOnTradingSession } from '../utils/tradingSession';
 
 const TAKER_FEES = BotConfig['taker_fees_futures']; // %
 const MAKER_FEES = BotConfig['maker_fees_futures']; // %
@@ -121,33 +120,6 @@ class Player {
   }
 
   /**
-   * Get inputs for brain
-   */
-  public look(indicators: number[]) {
-    let { risk, leverage } = this.strategyConfig;
-    let vision: number[] = [];
-
-    // Holding a trade ?
-    const holdingTrade = this.wallet.position.size !== 0 ? 1 : 0;
-    vision.push(holdingTrade);
-
-    // Current PNL
-    const pnl = normalize(
-      this.wallet.totalUnrealizedProfit,
-      (-risk * this.wallet.totalWalletBalance) / leverage,
-      (risk * this.wallet.totalWalletBalance) / leverage,
-      0,
-      1
-    );
-    vision.push(pnl);
-
-    // Add indicator values
-    vision = vision.concat(indicators);
-
-    this.vision = vision;
-  }
-
-  /**
    * Move the player according to the outputs from the neural network
    * @param strategyConfig
    * @param candles
@@ -188,6 +160,13 @@ class Player {
   }
 
   /**
+   * Get inputs for brain
+   */
+  public look(indicators: number[]) {
+    this.vision = indicators;
+  }
+
+  /**
    * Gets the output of the brain, then converts them to actions
    */
   public think() {
@@ -218,7 +197,7 @@ class Player {
       asset,
       base,
       risk,
-      tradingSession,
+      tradingSessions,
       maxTradeDuration,
       trailingStopConfig,
       trendFilter,
@@ -256,9 +235,9 @@ class Player {
     const quantityPrecision = getQuantityPrecision(pair, exchangeInfo);
 
     // Check if we are in the trading sessions
-    const isTradingSessionActive = this.isTradingSessionActive(
+    const isTradingSessionActive = isOnTradingSession(
       candles[candles.length - 1].openTime,
-      tradingSession
+      tradingSessions
     );
 
     // Open orders
@@ -266,9 +245,9 @@ class Player {
 
     // The current position is too long
     if (
+      this.counter &&
       maxTradeDuration &&
-      (hasShortPosition || hasLongPosition) &&
-      this.counter
+      (hasShortPosition || hasLongPosition)
     ) {
       this.counter.decrement();
       if (this.counter.getValue() == 0) {
@@ -290,6 +269,7 @@ class Player {
 
     // Reset the counter if a previous trade close a the position
     if (
+      this.counter &&
       maxTradeDuration &&
       !hasLongPosition &&
       !hasShortPosition &&
@@ -410,11 +390,10 @@ class Player {
 
     if (this.openOrders.length > 0) {
       const pair = asset + base;
-      const pairOrders = this.openOrders;
-      const longOrders = pairOrders.filter(
+      const longOrders = this.openOrders.filter(
         (order) => order.positionSide === 'LONG'
       );
-      const shortOrders = pairOrders.filter(
+      const shortOrders = this.openOrders.filter(
         (order) => order.positionSide === 'SHORT'
       );
       const position = this.wallet.position;
@@ -1018,29 +997,6 @@ class Player {
   }
 
   /**
-   * The trader trade only on the trading session authorized
-   * @param currentDate
-   * @param tradingSession
-   */
-  private isTradingSessionActive(
-    currentDate: Date,
-    tradingSession?: TradingSession
-  ) {
-    if (tradingSession) {
-      const currentTime = dayjs(currentDate);
-      const currentDay = currentTime.format('YYYY-MM-DD');
-      const startSessionTime = `${currentDay} ${tradingSession.start}:00`;
-      const endSessionTime = `${currentDay} ${tradingSession.end}:00`;
-      return dayjs(currentTime.format('YYYY-MM-DD HH:mm:ss')).isBetween(
-        startSessionTime,
-        endSessionTime
-      );
-    } else {
-      return true;
-    }
-  }
-
-  /**
    * Update the max drawdown and max balance with the current state of the wallet
    */
   private updateDrawdownMaxBalance() {
@@ -1133,7 +1089,7 @@ class Player {
     const avgLoss = totalLoss / (longLostTrades + shortLostTrades);
 
     // Fitness Formulas
-    this.fitness = this.wallet.totalWalletBalance;
+    this.fitness = this.wallet.totalWalletBalance / totalTrades;
     // this.fitness = avgProfit * winRate - avgLoss * lossRate;
     // this.fitness =
     //   winRate * profitRatio * (roi / Math.abs(maxRelativeDrawdown));

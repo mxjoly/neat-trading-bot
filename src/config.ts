@@ -8,13 +8,13 @@ import { basicStrategy } from './exitStrategy';
 const config: StrategyConfig = {
   asset: 'BTC',
   base: 'USDT',
-  interval: CandleChartInterval.FIFTEEN_MINUTES,
+  interval: CandleChartInterval.FIVE_MINUTES,
   risk: 0.01,
   leverage: 20,
   exitStrategy: (price, candles, pricePrecision, side) =>
     basicStrategy(price, pricePrecision, side, {
       profitTarget: 0.01,
-      lossTolerance: 0.005,
+      lossTolerance: 0.01,
     }),
   riskManagement: getPositionSizeByRisk,
 };

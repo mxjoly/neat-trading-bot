@@ -398,7 +398,6 @@ class Genome {
     return connectionInnovationNumber;
   }
 
-  //
   /**
    * Returns whether the network is fully connected or not
    */
