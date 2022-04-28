@@ -1,11 +1,12 @@
 import { EMA } from 'technicalindicators';
 
 interface Options {
+  volume: number[];
   longLength: number;
   shortLength: number;
 }
 
-const defaultOptions: Options = {
+const defaultOptions = {
   longLength: 10,
   shortLength: 5,
 };
@@ -14,23 +15,19 @@ const defaultOptions: Options = {
  * Oscillator volume
  */
 export function calculate({
-  candles,
+  volume,
   longLength = defaultOptions.longLength,
   shortLength = defaultOptions.shortLength,
-}: {
-  candles: CandleData[];
-  longLength?: number;
-  shortLength?: number;
-}) {
+}: Options) {
   let results: number[] = [];
 
   let emaVolLong = EMA.calculate({
     period: longLength,
-    values: candles.map((candle) => candle.volume),
+    values: volume,
   });
   let emaVolShort = EMA.calculate({
     period: shortLength,
-    values: candles.map((candle) => candle.volume),
+    values: volume,
   });
 
   for (let i = 0; i < emaVolLong.length; i++) {

@@ -4,7 +4,7 @@ interface StrategyConfig {
   interval: CandleChartInterval;
   leverage?: number;
   risk: number; // % of total balance to risk in a trade
-  tradingSession?: TradingSession; // The robot trades only during these session
+  tradingSession?: TradingSession[]; // The robot trades only during these session
   maxTradeDuration?: number; // Max duration of a trade in the unit of the loopInterval
   trailingStopConfig?: TrailingStopConfig; // Configuration of a trailing stop
   tradingSessions?: TradingSession[]; // The robot trades only during these sessions
@@ -62,6 +62,6 @@ type TradeManagement = (orderInfos: QueryOrderResult[]) => void;
 
 type TradingSession = {
   day: 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 (Sunday) to 6 (Saturday)
-  start: { hour: number; minute: number };
-  end: { hour: number; minutes };
+  start: { hour: string; minute: string };
+  end: { hour: string; minutes: string };
 };

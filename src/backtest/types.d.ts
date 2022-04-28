@@ -5,14 +5,14 @@ interface Database {
   strategyResults: StrategyResults;
 }
 
-interface FuturesWallet {
+interface Wallet {
   availableBalance: number;
   totalWalletBalance: number;
   totalUnrealizedProfit: number;
   position: Position;
 }
 
-interface FuturesOpenOrder {
+interface OpenOrder {
   id: string;
   pair: string;
   price: number;

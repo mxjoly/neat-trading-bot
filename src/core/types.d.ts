@@ -17,7 +17,7 @@ interface TraderStats {
 
 interface TraderGoals {
   winRate?: number;
-  profitRatio?: number; // like the RR
+  profitFactor?: number; // like the RR
   maxRelativeDrawdown?: number;
   minimumTrades?: number;
 }

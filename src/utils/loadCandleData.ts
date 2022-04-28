@@ -58,9 +58,8 @@ export function loadCandlesFromAPI(
   onlyFinalCandle = true
 ) {
   return new Promise<CandleData[]>((resolve, reject) => {
-    const getCandles = binanceClient.futuresCandles;
-
-    getCandles({ symbol, interval })
+    binanceClient
+      .futuresCandles({ symbol, interval })
       .then((candles) => {
         resolve(
           candles

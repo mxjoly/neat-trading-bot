@@ -30,8 +30,8 @@ class Player {
   private initialCapital: number;
   private goals: TraderGoals;
 
-  public wallet: FuturesWallet;
-  private openOrders: FuturesOpenOrder[];
+  public wallet: Wallet;
+  private openOrders: OpenOrder[];
   private counter: Counter; // to cut the position too long
   public stats: TraderStats; // Stats
 
@@ -409,87 +409,61 @@ class Player {
       longOrders
         .sort((order1, order2) => order2.price - order1.price) // sort order from nearest price to furthest price
         .every(({ id, price, quantity, type, trailingStop }) => {
-          const { entryPrice, size, leverage } = position;
+          const { entryPrice, leverage, positionSide } = position;
           const fees = quantity * price * (MAKER_FEES / 100);
+
+          if (positionSide === 'LONG') return;
 
           // Price crossed the buy limit order
           if (
-            type !== 'TRAILING_STOP_MARKET' &&
+            type === 'LIMIT' &&
             lastCandle.high > price &&
             lastCandle.low < price
           ) {
-            if (type === 'LIMIT') {
-              // Average the position
-              if (position.positionSide === 'LONG') {
-                let baseCost = (price * quantity) / leverage;
+            // Update wallet
+            let pnl = this.getPositionPNL(position, price);
+            wallet.availableBalance += position.margin + pnl - fees;
+            wallet.totalWalletBalance += pnl - fees;
 
-                // If there is enough available base
-                if (wallet.availableBalance >= baseCost + fees) {
-                  let avgEntryPrice =
-                    (price * quantity + entryPrice * Math.abs(size)) /
-                    (quantity + Math.abs(size));
+            // Update position
+            position.size += quantity;
+            position.margin = Math.abs(position.size * price) / leverage;
 
-                  position.margin += baseCost;
-                  position.size += quantity;
-                  position.entryPrice = avgEntryPrice;
-                  wallet.availableBalance -= baseCost + fees;
-                  wallet.totalWalletBalance -= fees;
-
-                  if (!hasPosition) {
-                    this.stats.totalTrades++;
-                    this.stats.longTrades++;
-                  }
-                  this.stats.totalFees += fees;
-                }
-              } else if (position.positionSide === 'SHORT') {
-                let hasPosition = position.size < 0;
-
-                // Update wallet
-                let pnl = this.getPositionPNL(position, price);
-                wallet.availableBalance += position.margin + pnl - fees;
-                wallet.totalWalletBalance += pnl - fees;
-
-                // Update position
-                position.size += quantity;
-                position.margin = Math.abs(position.size * price) / leverage;
-
-                // The position has been closed
-                if (position.size === 0) {
-                  position.entryPrice = 0;
-                  position.unrealizedProfit = 0;
-                }
-
-                // The position side has been changed
-                if (position.size > 0) {
-                  position.entryPrice = price;
-                  position.positionSide = 'LONG';
-                  let newPnl = this.getPositionPNL(position, price);
-                  position.unrealizedProfit = newPnl;
-                  wallet.availableBalance -= position.margin;
-                  this.stats.totalTrades++;
-                  this.stats.longTrades++;
-                }
-
-                // Update profit and loss
-                if (pnl >= 0) {
-                  this.stats.totalProfit += pnl;
-                } else {
-                  this.stats.totalLoss += pnl;
-                }
-
-                if (hasPosition && entryPrice >= price) {
-                  this.stats.shortWinningTrades++;
-                  this.stats.winningTrades++;
-                }
-                if (hasPosition && entryPrice < price) {
-                  this.stats.shortLostTrades++;
-                  this.stats.lostTrades++;
-                }
-                this.stats.totalFees += fees;
-              }
-
-              this.closeOpenOrder(id);
+            // The position has been closed
+            if (position.size === 0) {
+              position.entryPrice = 0;
+              position.unrealizedProfit = 0;
             }
+
+            // The position side has been changed
+            if (position.size > 0) {
+              position.entryPrice = price;
+              position.positionSide = 'LONG';
+              let newPnl = this.getPositionPNL(position, price);
+              position.unrealizedProfit = newPnl;
+              wallet.availableBalance -= position.margin;
+              this.stats.totalTrades++;
+              this.stats.longTrades++;
+            }
+
+            // Update profit and loss
+            if (pnl >= 0) {
+              this.stats.totalProfit += pnl;
+            } else {
+              this.stats.totalLoss += pnl;
+            }
+
+            if (hasPosition && entryPrice >= price) {
+              this.stats.shortWinningTrades++;
+              this.stats.winningTrades++;
+            }
+            if (hasPosition && entryPrice < price) {
+              this.stats.shortLostTrades++;
+              this.stats.lostTrades++;
+            }
+            this.stats.totalFees += fees;
+
+            this.closeOpenOrder(id);
           }
 
           // Trailing stops
@@ -544,88 +518,61 @@ class Player {
       shortOrders
         .sort((order1, order2) => order1.price - order2.price) // sort order from nearest price to furthest price
         .every(({ id, price, quantity, type, trailingStop }) => {
-          const { entryPrice, size, leverage } = position;
+          const { entryPrice, leverage, positionSide } = position;
           const fees = quantity * price * (MAKER_FEES / 100);
+
+          if (positionSide === 'SHORT') return;
 
           // Price crossed the sell limit order
           if (
-            type !== 'TRAILING_STOP_MARKET' &&
+            type === 'LIMIT' &&
             lastCandle.high > price &&
             lastCandle.low < price
           ) {
-            // If there is enough available base
-            if (type === 'LIMIT') {
-              // Average the position
-              if (position.positionSide === 'SHORT') {
-                let baseCost = (price * quantity) / leverage;
+            // Update wallet
+            let pnl = this.getPositionPNL(position, price);
+            wallet.availableBalance += position.margin + pnl - fees;
+            wallet.totalWalletBalance += pnl - fees;
 
-                // If there is enough available base
-                if (wallet.availableBalance >= baseCost + fees) {
-                  let avgEntryPrice =
-                    (price * quantity + entryPrice * Math.abs(size)) /
-                    (quantity + Math.abs(size));
+            // Update position
+            position.size -= quantity;
+            position.margin = Math.abs(position.size * price) / leverage;
 
-                  position.margin += baseCost;
-                  position.size -= quantity;
-                  position.entryPrice = avgEntryPrice;
-                  wallet.availableBalance -= baseCost + fees;
-                  wallet.totalWalletBalance -= fees;
-
-                  if (!hasPosition) {
-                    this.stats.totalTrades++;
-                    this.stats.shortTrades++;
-                  }
-                  this.stats.totalFees += fees;
-                }
-              } else if (position.positionSide === 'LONG') {
-                let hasPosition = position.size > 0;
-
-                // Update wallet
-                let pnl = this.getPositionPNL(position, price);
-                wallet.availableBalance += position.margin + pnl - fees;
-                wallet.totalWalletBalance += pnl - fees;
-
-                // Update position
-                position.size -= quantity;
-                position.margin = Math.abs(position.size * price) / leverage;
-
-                // The position has been closed
-                if (position.size === 0) {
-                  position.entryPrice = 0;
-                  position.unrealizedProfit = 0;
-                }
-
-                // The position side has been changed
-                if (position.size < 0) {
-                  position.entryPrice = price;
-                  position.positionSide = 'SHORT';
-                  let newPnl = this.getPositionPNL(position, price);
-                  position.unrealizedProfit = newPnl;
-                  wallet.availableBalance -= position.margin;
-                  this.stats.totalTrades++;
-                  this.stats.shortTrades++;
-                }
-
-                // Update profit and loss
-                if (pnl >= 0) {
-                  this.stats.totalProfit += pnl;
-                } else {
-                  this.stats.totalLoss += pnl;
-                }
-
-                if (hasPosition && entryPrice <= price) {
-                  this.stats.longWinningTrades++;
-                  this.stats.winningTrades++;
-                }
-                if (hasPosition && entryPrice > price) {
-                  this.stats.longLostTrades++;
-                  this.stats.lostTrades++;
-                }
-                this.stats.totalFees += fees;
-              }
-
-              this.closeOpenOrder(id);
+            // The position has been closed
+            if (position.size === 0) {
+              position.entryPrice = 0;
+              position.unrealizedProfit = 0;
             }
+
+            // The position side has been changed
+            if (position.size < 0) {
+              position.entryPrice = price;
+              position.positionSide = 'SHORT';
+              let newPnl = this.getPositionPNL(position, price);
+              position.unrealizedProfit = newPnl;
+              wallet.availableBalance -= position.margin;
+              this.stats.totalTrades++;
+              this.stats.shortTrades++;
+            }
+
+            // Update profit and loss
+            if (pnl >= 0) {
+              this.stats.totalProfit += pnl;
+            } else {
+              this.stats.totalLoss += pnl;
+            }
+
+            if (hasPosition && entryPrice <= price) {
+              this.stats.longWinningTrades++;
+              this.stats.winningTrades++;
+            }
+            if (hasPosition && entryPrice > price) {
+              this.stats.longLostTrades++;
+              this.stats.lostTrades++;
+            }
+            this.stats.totalFees += fees;
+
+            this.closeOpenOrder(id);
           }
 
           // Trailing stops
@@ -872,7 +819,7 @@ class Player {
         : this.wallet.availableBalance >= baseCost; // New position
 
     if (canOrder) {
-      let order: FuturesOpenOrder = {
+      let order: OpenOrder = {
         id: Math.random().toString(16).slice(2),
         pair,
         type: 'LIMIT',
@@ -917,7 +864,7 @@ class Player {
 
     let canOrder = quantity <= Math.abs(position.size);
     if (canOrder) {
-      let order: FuturesOpenOrder = {
+      let order: OpenOrder = {
         id: Math.random().toString(16).slice(2),
         pair,
         type: 'TRAILING_STOP_MARKET',
@@ -1078,7 +1025,7 @@ class Player {
       shortLostTrades,
     } = this.stats;
 
-    const profitRatio = totalProfit / (Math.abs(totalLoss) + totalFees);
+    const profitFactor = totalProfit / (Math.abs(totalLoss) + totalFees);
     const totalNetProfit = totalProfit - (Math.abs(totalLoss) + totalFees);
     const winRate = winningTrades / totalTrades;
     const lossRate = lostTrades / totalTrades;
@@ -1091,8 +1038,7 @@ class Player {
     // Fitness Formulas
     this.fitness = this.wallet.totalWalletBalance / totalTrades;
     // this.fitness = avgProfit * winRate - avgLoss * lossRate;
-    // this.fitness =
-    //   winRate * profitRatio * (roi / Math.abs(maxRelativeDrawdown));
+    // this.fitness = winRate * profitFactor * (roi / (1 - maxRelativeDrawdown));
 
     if (isNaN(this.fitness)) {
       this.fitness = 0;
@@ -1113,13 +1059,13 @@ class Player {
       this.fitness /= 2 - diff;
     }
 
-    if (this.goals.profitRatio && profitRatio < this.goals.profitRatio) {
-      let diff = profitRatio - this.goals.profitRatio;
-      this.fitness /= 2 - diff;
+    if (this.goals.profitFactor && profitFactor < this.goals.profitFactor) {
+      this.fitness /= this.goals.profitFactor / profitFactor;
     }
 
     if (this.goals.winRate && winRate < this.goals.winRate) {
       let diff = winRate - this.goals.winRate;
+      // this.fitness /= 2 - diff;
       this.fitness /= 2 - winRate;
     }
   }

@@ -29,13 +29,13 @@ export function debugLastCandle(lastCandle: CandleData) {
   );
 }
 
-export function debugWallet(futuresWallet: FuturesWallet) {
+export function debugWallet(wallet: Wallet) {
   let {
     availableBalance,
     totalWalletBalance,
     totalUnrealizedProfit,
     position,
-  } = futuresWallet;
+  } = wallet;
   let walletString = `wallet: { availableBalance: ${decimalFloor(
     availableBalance,
     2
@@ -57,9 +57,9 @@ export function debugWallet(futuresWallet: FuturesWallet) {
   log(positionsString, chalk.grey);
 }
 
-export function debugOpenOrders(futuresOpenOrders: FuturesOpenOrder[]) {
-  if (futuresOpenOrders.length > 0) {
-    let ordersString = `orders: [ ${futuresOpenOrders
+export function debugOpenOrders(openOrders: OpenOrder[]) {
+  if (openOrders.length > 0) {
+    let ordersString = `orders: [ ${openOrders
       .map(
         (o) =>
           `{ id: ${o.id} | pair: ${o.pair} | type: ${o.type} | side: ${o.positionSide} | qty: ${o.quantity} | price: ${o.price} }`

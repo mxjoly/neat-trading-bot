@@ -1,12 +1,13 @@
 import chalk from 'chalk';
 import Binance from 'binance-api-node';
-import Config from '../config';
+import Config from '../strategy/strategyConfig';
 import { decimalCeil, decimalFloor } from '../utils/math';
 import { loadCandlesFromCSV } from '../utils/loadCandleData';
 import Trader from '../core/player';
 import Population from '../core/population';
 import { loadNeuralNetwork, saveNeuralNetwork } from './saveManager';
 import { calculateIndicators } from './indicators';
+import { BackTestBot } from '../backtest/bot';
 import {
   CANDLE_MIN_LENGTH,
   NEURAL_NETWORK_INPUTS,
@@ -17,13 +18,12 @@ import {
   totalPopulation,
   initialCapital,
   winRate,
-  profitRatio,
+  profitFactor,
   maxRelativeDrawdown,
   startDateTest,
   endDateTest,
   minimumTrades,
 } from './loadConfig';
-import { BackTestBot } from '../backtest/bot';
 
 /**
  * To print a value with a color code (green when it's positive, red if it's negative)
@@ -73,7 +73,7 @@ function displayBestTraderStats(bestTrader: Trader) {
   totalProfit = decimalFloor(totalProfit, 2);
   totalLoss = decimalFloor(Math.abs(totalLoss), 2);
   totalFees = decimalFloor(Math.abs(totalFees), 2);
-  let profitRatio = decimalFloor(totalProfit / (totalLoss + totalFees), 2);
+  let profitFactor = decimalFloor(totalProfit / (totalLoss + totalFees), 2);
   let totalBalance = decimalFloor(wallet.totalWalletBalance, 2);
   let winRate = decimalFloor((winningTrades / totalTrades) * 100, 2);
   let roi = decimalFloor(
@@ -100,7 +100,7 @@ function displayBestTraderStats(bestTrader: Trader) {
   console.log(`Longs: ${longWinningTrades + longLostTrades}`);
   console.log(`Shorts: ${shortWinningTrades + shortLostTrades}`);
   console.log(
-    `Profit Ratio: ${coloredValue(isNaN(profitRatio) ? 0 : profitRatio, 1)}`
+    `Profit Factor: ${coloredValue(isNaN(profitFactor) ? 0 : profitFactor, 1)}`
   );
   console.log(`Total Profit: ${coloredValue(totalProfit, 0)}`);
   console.log(`Total Loss: ${coloredValue(-totalLoss, 0)}`);
@@ -139,7 +139,7 @@ export async function train(useSave?: boolean) {
 
   let goals = {
     winRate: winRate,
-    profitRatio: profitRatio,
+    profitFactor: profitFactor,
     maxRelativeDrawdown: maxRelativeDrawdown,
     minimumTrades: minimumTrades,
   };

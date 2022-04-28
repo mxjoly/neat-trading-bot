@@ -1,8 +1,4 @@
-import fs from 'fs';
-import path from 'path';
 import { normalize } from '../utils/math';
-import * as VolumeOscillator from '../indicators/volumeOscillator';
-import { NEURAL_NETWORK_INDICATORS_INPUTS } from './loadConfig';
 import {
   ADX,
   AwesomeOscillator,
@@ -12,174 +8,467 @@ import {
   MFI,
   ROC,
   RSI,
+  SMA,
   WilliamsR,
+  MACD,
+  PSAR,
+  StochasticRSI,
+  BollingerBands,
+  KeltnerChannels,
+  TRIX,
+  VWAP,
+  AverageGain,
+  AverageLoss,
+  bullish,
+  bearish,
 } from 'technicalindicators';
+import {
+  RMI,
+  HMA,
+  VolumeOscillator,
+  SupportResistance,
+  Supertrend,
+  Aroon,
+} from '../indicators';
+import dayjs from 'dayjs';
 
 /**
  * Calculate the indicator values
  * @param candles
  */
 export function calculateIndicators(candles: CandleData[]) {
-  // EMA21 (difference between current price and the value of ema)
-  const ema21 = NEURAL_NETWORK_INDICATORS_INPUTS.EMA21
-    ? EMA.calculate({
-        period: 21,
-        values: candles.map((c) => c.close),
-      }).map(
-        (v, i, l) => (candles[candles.length - (l.length - i)].close - v) / v
-      )
-    : null;
+  const open = candles.map((c) => c.open);
+  const close = candles.map((c) => c.close);
+  const high = candles.map((c) => c.high);
+  const low = candles.map((c) => c.low);
+  const volume = candles.map((c) => c.volume);
 
-  // EMA50 (difference between current price and the value of ema)
-  const ema50 = NEURAL_NETWORK_INDICATORS_INPUTS.EMA50
-    ? EMA.calculate({
-        period: 50,
-        values: candles.map((c) => c.close),
-      }).map(
-        (v, i, l) => (candles[candles.length - (l.length - i)].close - v) / v
-      )
-    : null;
+  const ema10 = EMA.calculate({
+    period: 10,
+    values: close,
+  })
+    .map((v, i, l) =>
+      close[close.length - (l.length - i)] > v
+        ? 1
+        : close[close.length - (l.length - i)] < v
+        ? -1
+        : 0
+    )
+    .map((v) => normalize(v, -1, 1, 0, 1));
 
-  // EMA100 (difference between current price and the value of ema)
-  const ema100 = NEURAL_NETWORK_INDICATORS_INPUTS.EMA100
-    ? EMA.calculate({
-        period: 100,
-        values: candles.map((c) => c.close),
-      }).map(
-        (v, i, l) => (candles[candles.length - (l.length - i)].close - v) / v
-      )
-    : null;
+  const ema15 = EMA.calculate({
+    period: 15,
+    values: close,
+  })
+    .map((v, i, l) =>
+      close[close.length - (l.length - i)] > v
+        ? 1
+        : close[close.length - (l.length - i)] < v
+        ? -1
+        : 0
+    )
+    .map((v) => normalize(v, -1, 1, 0, 1));
+
+  const ema20 = EMA.calculate({
+    period: 20,
+    values: close,
+  })
+    .map((v, i, l) =>
+      close[close.length - (l.length - i)] > v
+        ? 1
+        : close[close.length - (l.length - i)] < v
+        ? -1
+        : 0
+    )
+    .map((v) => normalize(v, -1, 1, 0, 1));
+
+  const ema25 = EMA.calculate({
+    period: 25,
+    values: close,
+  })
+    .map((v, i, l) =>
+      close[close.length - (l.length - i)] > v
+        ? 1
+        : close[close.length - (l.length - i)] < v
+        ? -1
+        : 0
+    )
+    .map((v) => normalize(v, -1, 1, 0, 1));
+
+  const ema30 = EMA.calculate({
+    period: 30,
+    values: close,
+  })
+    .map((v, i, l) =>
+      close[close.length - (l.length - i)] > v
+        ? 1
+        : close[close.length - (l.length - i)] < v
+        ? -1
+        : 0
+    )
+    .map((v) => normalize(v, -1, 1, 0, 1));
+
+  const ema35 = EMA.calculate({
+    period: 35,
+    values: close,
+  })
+    .map((v, i, l) =>
+      close[close.length - (l.length - i)] > v
+        ? 1
+        : close[close.length - (l.length - i)] < v
+        ? -1
+        : 0
+    )
+    .map((v) => normalize(v, -1, 1, 0, 1));
+
+  const ema40 = EMA.calculate({
+    period: 40,
+    values: close,
+  })
+    .map((v, i, l) =>
+      close[close.length - (l.length - i)] > v
+        ? 1
+        : close[close.length - (l.length - i)] < v
+        ? -1
+        : 0
+    )
+    .map((v) => normalize(v, -1, 1, 0, 1));
+
+  const ema45 = EMA.calculate({
+    period: 45,
+    values: close,
+  })
+    .map((v, i, l) =>
+      close[close.length - (l.length - i)] > v
+        ? 1
+        : close[close.length - (l.length - i)] < v
+        ? -1
+        : 0
+    )
+    .map((v) => normalize(v, -1, 1, 0, 1));
+
+  const ema50 = EMA.calculate({
+    period: 50,
+    values: close,
+  })
+    .map((v, i, l) =>
+      close[close.length - (l.length - i)] > v
+        ? 1
+        : close[close.length - (l.length - i)] < v
+        ? -1
+        : 0
+    )
+    .map((v) => normalize(v, -1, 1, 0, 1));
+
+  const sma100 = SMA.calculate({
+    period: 100,
+    values: close,
+  })
+    .map((v, i, l) =>
+      close[close.length - (l.length - i)] > v
+        ? 1
+        : close[close.length - (l.length - i)] < v
+        ? -1
+        : 0
+    )
+    .map((v) => normalize(v, -1, 1, 0, 1));
+
+  const sma200 = SMA.calculate({
+    period: 100,
+    values: close,
+  })
+    .map((v, i, l) =>
+      close[close.length - (l.length - i)] > v
+        ? 1
+        : close[close.length - (l.length - i)] < v
+        ? -1
+        : 0
+    )
+    .map((v) => normalize(v, -1, 1, 0, 1));
+
+  // Weighted Moving Average (WMA)
+  const vwa = VWAP.calculate({
+    close,
+    high,
+    low,
+    volume,
+  })
+    .map((v, i, l) =>
+      close[close.length - (l.length - i)] > v
+        ? 1
+        : close[close.length - (l.length - i)] < v
+        ? -1
+        : 0
+    )
+    .map((v) => normalize(v, -1, 1, 0, 1));
+
+  // Hull Moving Average
+  const hma = HMA.calculate({ values: close, period: 14 })
+    .map((v, i, l) =>
+      close[close.length - (l.length - i)] > v
+        ? 1
+        : close[close.length - (l.length - i)] < v
+        ? -1
+        : 0
+    )
+    .map((v) => normalize(v, -1, 1, 0, 1));
 
   // Average Directional Index
-  const adx = NEURAL_NETWORK_INDICATORS_INPUTS.ADX
-    ? ADX.calculate({
-        period: 14,
-        close: candles.map((c) => c.close),
-        high: candles.map((c) => c.high),
-        low: candles.map((c) => c.low),
-      }).map((v) => v.adx)
-    : null;
+  const adx = ADX.calculate({
+    period: 14,
+    close,
+    high,
+    low,
+  }).map((v) => normalize(v.adx, 0, 100, 0, 1));
 
   // Awesome Indicator
-  const ao = NEURAL_NETWORK_INDICATORS_INPUTS.AO
-    ? AwesomeOscillator.calculate({
-        fastPeriod: 5,
-        slowPeriod: 25,
-        high: candles.map((c) => c.high),
-        low: candles.map((c) => c.low),
-      })
-    : null;
+  const ao = AwesomeOscillator.calculate({
+    fastPeriod: 5,
+    slowPeriod: 25,
+    high,
+    low,
+  })
+    .map((v) => (v > 0 ? 1 : v < 0 ? -1 : 0))
+    .map((v) => normalize(v, -1, 1, 0, 1));
 
   // Commodity Channel Index
-  const cci = NEURAL_NETWORK_INDICATORS_INPUTS.CCI
-    ? CCI.calculate({
-        period: 20,
-        close: candles.map((c) => c.close),
-        high: candles.map((c) => c.high),
-        low: candles.map((c) => c.low),
-      })
-    : null;
+  const cci = CCI.calculate({
+    period: 20,
+    close,
+    high,
+    low,
+  })
+    .map((v) => (v > 0 ? 1 : v < 0 ? -1 : 0))
+    .map((v) => normalize(v, -1, 1, 0, 1));
 
   // Money Flow Index
-  const mfi = NEURAL_NETWORK_INDICATORS_INPUTS.MFI
-    ? MFI.calculate({
-        period: 14,
-        volume: candles.map((c) => c.volume),
-        close: candles.map((c) => c.close),
-        high: candles.map((c) => c.high),
-        low: candles.map((c) => c.low),
-      })
-    : null;
+  const mfi = MFI.calculate({
+    period: 14,
+    volume,
+    close,
+    high,
+    low,
+  }).map((v) => normalize(v, 0, 100, 0, 1));
 
   // Rate of Change
-  const roc = NEURAL_NETWORK_INDICATORS_INPUTS.ROC
-    ? ROC.calculate({
-        period: 9,
-        values: candles.map((c) => c.close),
-      })
-    : null;
+  const roc = ROC.calculate({
+    period: 9,
+    values: close,
+  })
+    .map((v) => (v > 100 ? 1 : v < 100 ? -1 : 0))
+    .map((v) => normalize(v, -1, 1, 0, 1));
 
-  // Relative Strengh Index
-  const rsi = NEURAL_NETWORK_INDICATORS_INPUTS.RSI
-    ? RSI.calculate({
-        period: 14,
-        values: candles.map((c) => c.close),
-      })
-    : null;
+  // Relative Strength Index
+  const rsi = RSI.calculate({
+    period: 14,
+    values: close,
+  }).map((v) => normalize(v, 0, 100, 0, 1));
 
   // William R
-  const williamR = NEURAL_NETWORK_INDICATORS_INPUTS.WILLIAM_R
-    ? WilliamsR.calculate({
-        period: 14,
-        close: candles.map((c) => c.close),
-        high: candles.map((c) => c.high),
-        low: candles.map((c) => c.low),
-      })
-    : null;
+  const williamR = WilliamsR.calculate({
+    period: 14,
+    close,
+    high,
+    low,
+  }).map((v) => normalize(v, -100, 0, 0, 1));
 
-  // Ichimoku diff %
-  const kijun = NEURAL_NETWORK_INDICATORS_INPUTS.KIJUN
-    ? IchimokuCloud.calculate({
-        conversionPeriod: 9,
-        basePeriod: 26,
-        spanPeriod: 52,
-        displacement: 26,
-        high: candles.map((c) => c.high),
-        low: candles.map((c) => c.low),
-      }).map(
-        (v, i, l) =>
-          (candles[candles.length - (l.length - i)].close - v.base) / v.base
-      )
-    : null;
+  // Aroon
+  const aroon = Aroon.calculate({
+    length: 14,
+    high,
+    low,
+  })
+    .map((v) => (v.upper > v.lower ? 1 : v.upper < v.lower ? -1 : 0))
+    .map((v) => normalize(v, -1, 1, 0, 1));
+
+  // Ichimoku
+  const ichimoku = IchimokuCloud.calculate({
+    conversionPeriod: 9,
+    basePeriod: 26,
+    spanPeriod: 52,
+    displacement: 26,
+    high,
+    low,
+  });
+
+  // Kijun
+  const kijun = ichimoku
+    .map((v, i, l) =>
+      close[close.length - (l.length - i)] > v.base
+        ? 1
+        : close[close.length - (l.length - i)] < v.base
+        ? -1
+        : 0
+    )
+    .map((v) => normalize(v, -1, 1, 0, 1));
+
+  // Ichimokou cloud
+  const cloud = ichimoku.map((v, i, l) =>
+    close[close.length - (l.length - i)] > v.spanA && v.spanA > v.spanB
+      ? 1
+      : close[close.length - (l.length - i)] < v.spanA && v.spanA < v.spanB
+      ? -1
+      : 0
+  );
 
   // Oscillator volume
-  const volOsc = NEURAL_NETWORK_INDICATORS_INPUTS.VOL_OSC
-    ? VolumeOscillator.calculate({
-        shortLength: 5,
-        longLength: 10,
-        candles: candles,
-      })
-    : null;
+  const volOsc = VolumeOscillator.calculate({
+    shortLength: 5,
+    longLength: 10,
+    volume,
+  }).map((v) => normalize(v, 0, 100, 0, 1));
 
-  // Trading volume
-  const vol = NEURAL_NETWORK_INDICATORS_INPUTS.VOL
-    ? candles.map((c) => c.volume)
-    : null;
+  // MACD
+  const macd = MACD.calculate({
+    values: close,
+    fastPeriod: 12,
+    slowPeriod: 26,
+    signalPeriod: 9,
+    SimpleMAOscillator: true,
+    SimpleMASignal: true,
+  })
+    .map((v) => {
+      let a = v.MACD > v.signal ? 1 : v.MACD < v.signal ? -1 : 0;
+      let b = v.histogram > 0 ? 1 : v.histogram < 0 ? -1 : 0;
+      return a + b;
+    })
+    .map((v) => normalize(v, -2, 2, 0, 1));
 
-  // Price change
-  const priceChange = NEURAL_NETWORK_INDICATORS_INPUTS.PRICE_CHANGE
-    ? candles.map((c) => (c.close - c.open) / c.open)
-    : null;
+  // Parabolic Stop and Reverse
+  const psar = PSAR.calculate({
+    high,
+    low,
+    max: 0.2,
+    step: 0.02,
+  })
+    .map((v, i, l) =>
+      close[close.length - (l.length - i)] > v
+        ? 1
+        : close[close.length - (l.length - i)] < v
+        ? -1
+        : 0
+    )
+    .map((v) => normalize(v, -1, 1, 0, 1));
 
-  // Candle Open
-  const candleOpen = NEURAL_NETWORK_INDICATORS_INPUTS.CANDLE_OPEN
-    ? candles.map((c) => c.open)
-    : null;
+  // Stochastic RSI
+  const stochRsi = StochasticRSI.calculate({
+    values: close,
+    dPeriod: 3,
+    kPeriod: 3,
+    rsiPeriod: 14,
+    stochasticPeriod: 14,
+  })
+    .map((v) => (v.k > v.d ? 1 : v.k < v.d ? -1 : 0))
+    .map((v) => normalize(v, -1, 1, 0, 1));
 
-  // Candle High
-  const candleHigh = NEURAL_NETWORK_INDICATORS_INPUTS.CANDLE_HIGH
-    ? candles.map((c) => c.high)
-    : null;
+  // Triple Exponentially Smoothed Average
+  const trix = TRIX.calculate({
+    period: 18,
+    values: close,
+  })
+    .map((v) => (v > 0 ? 1 : v < 0 ? -1 : 0))
+    .map((v) => normalize(v, -1, 1, 0, 1));
 
-  // Candle Low
-  const candleLow = NEURAL_NETWORK_INDICATORS_INPUTS.CANDLE_LOW
-    ? candles.map((c) => c.low)
-    : null;
+  // Relative Momentum Index
+  const rmi = RMI.calculate({
+    values: close,
+    length: 14,
+    momentum: 3,
+  }).map((v) => normalize(v, 0, 100, 0, 1));
 
-  // Candle Close
-  const candleClose = NEURAL_NETWORK_INDICATORS_INPUTS.CANDLE_CLOSE
-    ? candles.map((c) => c.close)
-    : null;
+  // Supertrend
+  const supertrend = Supertrend.calculate({
+    close,
+    high,
+    low,
+    atrPeriod: 10,
+    atrMultiplier: 3,
+  })
+    .map((v) => v.trend)
+    .map((v) => normalize(v, -1, 1, 0, 1));
 
-  // We save min max of the last training (sort of memory)
-  let minMax: { min: number; max: number }[] = loadMinMax() || [];
-  let saveMinMaxToFile = minMax.length === 0;
+  // Support resistance
+  const supportResistance = SupportResistance.calculate({
+    high,
+    low,
+    left: 8,
+    right: 7,
+  })
+    .map((v, i, l) =>
+      close[close.length - (l.length - i)] > v.top
+        ? 1
+        : close[close.length - (l.length - i)] < v.bottom
+        ? -1
+        : 0
+    )
+    .map((v) => normalize(v, -1, 1, 0, 1));
+
+  // Bullish Pattern ?
+  const bullishPattern = candles.map((c, i) => {
+    if (i > 3) {
+      const cc = candles.slice(i - 4, i + 1);
+      return bullish({
+        open: cc.map((c) => c.open),
+        high: cc.map((c) => c.high),
+        low: cc.map((c) => c.low),
+        close: cc.map((c) => c.close),
+      });
+    } else return false;
+  });
+
+  // Bearish Pattern ?
+  const bearishPattern = candles.map((c, i) => {
+    if (i > 3) {
+      const cc = candles.slice(i - 4, i + 1);
+      return bearish({
+        open: cc.map((c) => c.open),
+        high: cc.map((c) => c.high),
+        low: cc.map((c) => c.low),
+        close: cc.map((c) => c.close),
+      });
+    } else return false;
+  });
+
+  // White or Black candle ?
+  const candleSide = candles.map((c) => (c.open > c.close ? 1 : -1));
+
+  // Day of the current candle
+  const day = candles
+    .map((c) => dayjs(c.closeTime).day())
+    .map((v) => normalize(v, 0, 6, 0, 1));
+
+  // Hour of the current candle
+  const hour = candles
+    .map((c) => dayjs(c.closeTime).hour())
+    .map((v) => normalize(v, 0, 23, 0, 1));
+
+  const isNewYorkSession = candles.map((c) =>
+    dayjs(c.closeTime).hour() >= 12 && dayjs(c.closeTime).hour() <= 20 ? 1 : 0
+  );
+
+  const isLondonSession = candles.map((c) =>
+    dayjs(c.closeTime).hour() >= 7 && dayjs(c.closeTime).hour() <= 15 ? 1 : 0
+  );
+
+  const isTokyoSession = candles.map((c) =>
+    dayjs(c.closeTime).hour() >= 23 && dayjs(c.closeTime).hour() <= 7 ? 1 : 0
+  );
 
   // Inputs for the neural network
   let inputs = [
-    ema21,
+    ema10,
+    ema15,
+    ema20,
+    ema25,
+    ema30,
+    ema35,
+    ema40,
+    ema45,
     ema50,
-    ema100,
+    sma100,
+    sma200,
+    vwa,
+    hma,
     adx,
     ao,
     cci,
@@ -187,56 +476,32 @@ export function calculateIndicators(candles: CandleData[]) {
     roc,
     rsi,
     williamR,
+    aroon,
     kijun,
+    cloud,
     volOsc,
-    vol,
-    priceChange,
-    candleOpen,
-    candleHigh,
-    candleLow,
-    candleClose,
+    macd,
+    psar,
+    stochRsi,
+    trix,
+    rmi,
+    supertrend,
+    supportResistance,
+    bullishPattern,
+    bearishPattern,
+    candleSide,
+    day,
+    hour,
+    isNewYorkSession,
+    isLondonSession,
+    isTokyoSession,
   ]
     .filter((i) => i !== null)
-    .map((values, index) => {
-      let min, max;
-
-      if (minMax.length > index) {
-        min = minMax[index].min;
-        max = minMax[index].max;
-      } else {
-        min = Math.min(...values);
-        max = Math.max(...values);
-        minMax[index] = { min, max };
-      }
-
-      return values.map((v) => {
-        return normalize(v, min, max, 0, 1);
-      });
-    })
     .map((values) => {
       // Set the same length for the array of indicator values
       let diff = candles.length - values.length;
       return new Array(diff).fill(null).concat(values);
     });
 
-  if (saveMinMaxToFile) saveMinMax(minMax);
-
   return inputs;
-}
-
-function loadMinMax() {
-  const tempDirectory = path.resolve(process.cwd(), 'temp');
-  const saveFile = path.join(tempDirectory, 'min-max.json');
-  if (fs.existsSync(saveFile)) {
-    let data = fs.readFileSync(saveFile, 'utf-8');
-    return JSON.parse(data);
-  }
-  return null;
-}
-
-function saveMinMax(minMax: { min: number; max: number }[]) {
-  const tempDirectory = path.resolve(process.cwd(), 'temp');
-  const saveFile = path.join(tempDirectory, 'min-max.json');
-  if (!fs.existsSync(tempDirectory)) fs.mkdirSync(tempDirectory);
-  fs.writeFileSync(saveFile, JSON.stringify(minMax));
 }

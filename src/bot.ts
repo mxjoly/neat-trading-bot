@@ -9,7 +9,6 @@ import { binanceClient } from './init';
 import { Counter } from './tools/counter';
 import { loadCandlesFromAPI } from './utils/loadCandleData';
 import Genome from './core/genome';
-import { normalize } from './utils/math';
 import { calculateIndicators } from './training/indicators';
 import { getPricePrecision, getQuantityPrecision } from './utils/currencyInfo';
 import { calculateActivationPrice } from './utils/trailingStop';
