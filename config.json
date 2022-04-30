@@ -2,15 +2,15 @@
   "taker_fees_futures": 0.04,
   "maker_fees_futures": 0.02,
   "backtest": {
-    "start_date": "2022-01-01 00:00:00",
+    "start_date": "2020-01-01 00:00:00",
     "end_date": "2022-03-01 00:00:00",
     "initial_capital": 10000
   },
   "neat": {
-    "start_date_training": "2021-01-01 00:00:00",
+    "start_date_training": "2020-01-01 00:00:00",
     "end_date_training": "2022-01-01 00:00:00",
-    "start_date_test": "2021-01-01 00:00:00",
-    "end_date_test": "2022-01-01 00:00:00",
+    "start_date_test": "2020-01-01 00:00:00",
+    "end_date_test": "2022-03-01 00:00:00",
     "initial_capital": 10000,
     "population": 100,
     "generations": 1000,
@@ -18,7 +18,7 @@
       "win_rate": 0.7,
       "profit_factor": 2,
       "max_relative_drawdown": -0.05,
-      "minimum_trades": 300
+      "minimum_trades": 50
     }
   }
 }

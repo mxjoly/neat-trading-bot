@@ -40,7 +40,7 @@ export const logger = createLogger({
 });
 
 // Import the strategy config
-export const StrategyConfig = require(`./config.js`).default;
+export const StrategyConfig = require(`./strategy/strategyConfig.js`).default;
 
 export const binanceClient = Binance(
   process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'test'

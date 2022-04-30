@@ -25,7 +25,7 @@ export const profitFactor = GoalsConfig['profit_factor'];
 export const maxRelativeDrawdown = GoalsConfig['max_relative_drawdown'];
 export const minimumTrades = GoalsConfig['minimum_trades'];
 
-export const NEURAL_NETWORK_INPUTS = 41;
+export const NEURAL_NETWORK_INPUTS = 7;
 
 export const NEURAL_NETWORK_OUTPUTS = 2; // Buy / Sell
 
