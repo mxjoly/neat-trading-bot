@@ -20,4 +20,5 @@ interface TraderGoals {
   profitFactor?: number; // like the RR
   maxRelativeDrawdown?: number;
   minimumTrades?: number;
+  maximumTrades?: number;
 }

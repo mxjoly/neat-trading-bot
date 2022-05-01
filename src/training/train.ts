@@ -23,6 +23,7 @@ import {
   startDateTest,
   endDateTest,
   minimumTrades,
+  maximumTrades,
 } from './loadConfig';
 
 /**
@@ -142,6 +143,7 @@ export async function train(useSave?: boolean) {
     profitFactor: profitFactor,
     maxRelativeDrawdown: maxRelativeDrawdown,
     minimumTrades: minimumTrades,
+    maximumTrades: maximumTrades,
   };
 
   let population = new Population({

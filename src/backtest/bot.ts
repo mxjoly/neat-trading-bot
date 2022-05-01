@@ -531,10 +531,9 @@ export class BackTestBot {
 
     // Decision to take
     let max = Math.max(...this.decisions);
-    const isBuySignal =
-      max === this.decisions[0] && this.decisions[0] > 0.6 && !hasShortPosition;
-    const isSellSignal =
-      max === this.decisions[1] && this.decisions[1] > 0.6 && !hasLongPosition;
+    const isBuySignal = max === this.decisions[0] && !hasShortPosition;
+    const isSellSignal = max === this.decisions[1] && !hasLongPosition;
+    const wait = max === this.decisions[2];
 
     // Conditions to take or not a position
     const canTakeLongPosition = useLongPosition && position.size === 0;
@@ -552,6 +551,9 @@ export class BackTestBot {
     // Currency infos
     const pricePrecision = getPricePrecision(pair, exchangeInfo);
     const quantityPrecision = getQuantityPrecision(pair, exchangeInfo);
+
+    // Wait
+    if (wait) return;
 
     // The current position is too long
     if (

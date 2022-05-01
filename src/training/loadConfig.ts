@@ -24,9 +24,10 @@ export const winRate = GoalsConfig['win_rate'];
 export const profitFactor = GoalsConfig['profit_factor'];
 export const maxRelativeDrawdown = GoalsConfig['max_relative_drawdown'];
 export const minimumTrades = GoalsConfig['minimum_trades'];
+export const maximumTrades = GoalsConfig['maximum_trades'];
 
-export const NEURAL_NETWORK_INPUTS = 7;
+export const NEURAL_NETWORK_INPUTS = 43;
 
-export const NEURAL_NETWORK_OUTPUTS = 2; // Buy / Sell
+export const NEURAL_NETWORK_OUTPUTS = 3; // Buy / Sell / Wait
 
 export const CANDLE_MIN_LENGTH = 210; // the trader start to trade when it can see X candles

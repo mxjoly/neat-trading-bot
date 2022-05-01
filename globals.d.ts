@@ -4,7 +4,6 @@ interface StrategyConfig {
   interval: CandleChartInterval;
   leverage?: number;
   risk: number; // % of total balance to risk in a trade
-  tradingSession?: TradingSession[]; // The robot trades only during these session
   maxTradeDuration?: number; // Max duration of a trade in the unit of the loopInterval
   trailingStopConfig?: TrailingStopConfig; // Configuration of a trailing stop
   tradingSessions?: TradingSession[]; // The robot trades only during these sessions

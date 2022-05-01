@@ -38,7 +38,7 @@ class Player {
   // NEAT Stuffs
   public fitness: number;
   private vision: number[]; // the inputs fed into the neuralNet
-  private decision: number[]; // the outputs of the NN
+  private decisions: number[]; // the outputs of the NN
   private unadjustedFitness: number;
   private lifespan: number; // how long the player lived for fitness
   public bestScore = 0; // stores the score achieved used for replay
@@ -102,7 +102,7 @@ class Player {
     // Neat stuffs
     this.fitness = 0;
     this.vision = [];
-    this.decision = [];
+    this.decisions = [];
     this.unadjustedFitness;
     this.lifespan = 0;
     this.bestScore = 0;
@@ -174,11 +174,11 @@ class Player {
     var maxIndex = 0;
 
     // Get the output of the neural network
-    this.decision = this.brain.feedForward(this.vision);
+    this.decisions = this.brain.feedForward(this.vision);
 
-    for (var i = 0; i < this.decision.length; i++) {
-      if (this.decision[i] > max) {
-        max = this.decision[i];
+    for (var i = 0; i < this.decisions.length; i++) {
+      if (this.decisions[i] > max) {
+        max = this.decisions[i];
         maxIndex = i;
       }
     }
@@ -220,11 +220,10 @@ class Player {
     const hasShortPosition = position.size < 0;
 
     // Decision to take
-    let max = Math.max(...this.decision);
-    const isBuySignal =
-      max === this.decision[0] && this.decision[0] > 0.6 && !hasShortPosition;
-    const isSellSignal =
-      max === this.decision[1] && this.decision[1] > 0.6 && !hasLongPosition;
+    let max = Math.max(...this.decisions);
+    const isBuySignal = max === this.decisions[0] && !hasShortPosition;
+    const isSellSignal = max === this.decisions[1] && !hasLongPosition;
+    const wait = max === this.decisions[2];
 
     // Conditions to take or not a position
     const canTakeLongPosition = useLongPosition && position.size === 0;
@@ -242,6 +241,9 @@ class Player {
 
     // Open orders
     const currentOpenOrders = this.openOrders;
+
+    // Wait
+    if (wait) return;
 
     // The current position is too long
     if (
@@ -1035,10 +1037,12 @@ class Player {
     const avgProfit = totalProfit / (longWinningTrades + shortWinningTrades);
     const avgLoss = totalLoss / (longLostTrades + shortLostTrades);
 
-    // Fitness Formulas
+    // ========================== Fitness Formulas ================================== //
     this.fitness = this.wallet.totalWalletBalance / totalTrades;
+    // this.fitness = totalNetProfit / totalTrades;
     // this.fitness = avgProfit * winRate - avgLoss * lossRate;
-    // this.fitness = winRate * profitFactor * (roi / (1 - maxRelativeDrawdown));
+    // this.fitness = roi / (1 - maxRelativeDrawdown);
+    // ============================================================================= //
 
     if (isNaN(this.fitness)) {
       this.fitness = 0;
@@ -1046,7 +1050,11 @@ class Player {
     }
 
     if (this.goals.minimumTrades && totalTrades < this.goals.minimumTrades) {
-      let diff = totalTrades - this.goals.minimumTrades;
+      // this.fitness /= 2 - diff;
+      this.fitness = 0;
+    }
+
+    if (this.goals.maximumTrades && totalTrades > this.goals.maximumTrades) {
       // this.fitness /= 2 - diff;
       this.fitness = 0;
     }

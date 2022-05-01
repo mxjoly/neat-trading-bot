@@ -359,6 +359,14 @@ export function calculateIndicators(candles: CandleData[]) {
     volume,
   }).map((v) => normalize(v, 0, 100, 0, 1));
 
+  // Aroon
+  const vaAroonUpper = aroon
+    .map((v) => v.upper)
+    .map((v) => normalize(v, 0, 100, 0, 1));
+  const vaAroonLower = aroon
+    .map((v) => v.lower)
+    .map((v) => normalize(v, 0, 100, 0, 1));
+
   // ==================== SIGNALS OF INDICATORS =================== //
 
   // Money Flow Index
@@ -562,22 +570,22 @@ export function calculateIndicators(candles: CandleData[]) {
   // Inputs for the neural network
   let inputs = [
     // Trend
-    // trendEma21,
-    // trendEma50,
-    // trendSma100,
-    // trendSma200,
-    // trendAroon,
-    // trendHma,
-    // trendMacdHist,
-    // trendMacdSignal,
-    // trendPsar,
-    // trendRoc,
-    // trendStochRsi,
-    // trendSupertrend,
-    // trendWma,
-    // trendKijun,
-    // trendCloud,
-    // trendWpr,
+    trendEma21,
+    trendEma50,
+    trendSma100,
+    trendSma200,
+    trendAroon,
+    trendHma,
+    trendMacdHist,
+    trendMacdSignal,
+    trendPsar,
+    trendRoc,
+    trendStochRsi,
+    trendSupertrend,
+    trendWma,
+    trendKijun,
+    trendCloud,
+    trendWpr,
     // Values
     valAdx,
     valCci,
@@ -586,29 +594,31 @@ export function calculateIndicators(candles: CandleData[]) {
     valRsi,
     valVolOsc,
     valWpr,
+    vaAroonUpper,
+    vaAroonLower,
     // Signals
-    // signalAroon,
-    // signalCci,
-    // signalKijun,
-    // signalMacd,
-    // signalMacdHist,
-    // signalMfi,
-    // signalPsar,
-    // signalRsi,
-    // signalStochRsi,
-    // signalSupertrend,
-    // signalSupportResistance,
-    // signalWpr,
+    signalAroon,
+    signalCci,
+    signalKijun,
+    signalMacd,
+    signalMacdHist,
+    signalMfi,
+    signalPsar,
+    signalRsi,
+    signalStochRsi,
+    signalSupertrend,
+    signalSupportResistance,
+    signalWpr,
     // Pattern
-    // bullishPattern,
-    // bearishPattern,
-    // candleSide,
+    bullishPattern,
+    bearishPattern,
+    candleSide,
     // Time
-    // day,
-    // hour,
-    // isNewYorkSession,
-    // isLondonSession,
-    // isTokyoSession,
+    day,
+    hour,
+    isNewYorkSession,
+    isLondonSession,
+    isTokyoSession,
   ].map((values) => {
     // Set the same length for the array of indicator values
     let diff = candles.length - values.length;
