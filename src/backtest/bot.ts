@@ -4,7 +4,7 @@ import chalk from 'chalk';
 import cliProgress from 'cli-progress';
 import dayjs from 'dayjs';
 import safeRequire from 'safe-require';
-import { binanceClient } from '../init';
+import { binanceClient, MAX_LOADED_CANDLE_LENGTH_API } from '../init';
 import Genome from '../core/genome';
 import { calculateIndicators } from '../training/indicators';
 import generateHTMLReport from './generateReport';
@@ -52,9 +52,6 @@ export const DEBUG = process.argv[2]
     ? true
     : false
   : false;
-
-// The bot starts to trade when it has X available candles
-const CANDLE_MIN_LENGTH = 210;
 
 // Exchange fee info
 const TAKER_FEES = BotConfig['taker_fees_futures']; // %
@@ -210,8 +207,15 @@ export class BackTestBot {
     if (!DEBUG) bar.start(duration, 0);
 
     // Time loop
-    for (let i = CANDLE_MIN_LENGTH; i < this.historicCandleData.length; i++) {
-      let candles = this.historicCandleData.slice(i - CANDLE_MIN_LENGTH, i + 1);
+    for (
+      let i = MAX_LOADED_CANDLE_LENGTH_API;
+      i < this.historicCandleData.length;
+      i++
+    ) {
+      let candles = this.historicCandleData.slice(
+        i - MAX_LOADED_CANDLE_LENGTH_API,
+        i + 1
+      );
       let currentCandle = candles[candles.length - 1];
       let currentDate = currentCandle.closeTime;
       let currentPrice = currentCandle.close;

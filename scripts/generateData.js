@@ -219,31 +219,33 @@ function run() {
     }
 
     timeFrames.forEach((timeFrame) => {
-      files.forEach((file) => {
-        const filePath = path.join(pathToProcess, file);
+      files
+        .filter((f) => f !== '.DS_Store')
+        .forEach((file) => {
+          const filePath = path.join(pathToProcess, file);
 
-        if (!fs.lstatSync(filePath).isDirectory()) {
-          const symbol = file.split('_')[0];
+          if (!fs.lstatSync(filePath).isDirectory()) {
+            const symbol = file.split('_')[0];
 
-          // Create folder data/SYMBOL
-          if (!fs.existsSync(path.join(dataDirectory, symbol)))
-            fs.mkdirSync(path.join(dataDirectory, symbol));
+            // Create folder data/SYMBOL
+            if (!fs.existsSync(path.join(dataDirectory, symbol)))
+              fs.mkdirSync(path.join(dataDirectory, symbol));
 
-          if (
-            !fs.existsSync(
-              path.join(dataDirectory, symbol, `_${timeFrame}.csv`)
-            )
-          ) {
-            transformDataToNewTimeFrame(filePath, symbol, timeFrame);
-          } else {
-            console.log(
-              chalk.blue(
-                `${file} has been already processed for the time frame ${timeFrame}`
+            if (
+              !fs.existsSync(
+                path.join(dataDirectory, symbol, `_${timeFrame}.csv`)
               )
-            );
+            ) {
+              transformDataToNewTimeFrame(filePath, symbol, timeFrame);
+            } else {
+              console.log(
+                chalk.blue(
+                  `${file} has been already processed for the time frame ${timeFrame}`
+                )
+              );
+            }
           }
-        }
-      });
+        });
     });
   });
 }

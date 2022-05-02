@@ -9,7 +9,6 @@ import { loadNeuralNetwork, saveNeuralNetwork } from './saveManager';
 import { calculateIndicators } from './indicators';
 import { BackTestBot } from '../backtest/bot';
 import {
-  CANDLE_MIN_LENGTH,
   NEURAL_NETWORK_INPUTS,
   NEURAL_NETWORK_OUTPUTS,
   startDateTraining,
@@ -25,6 +24,7 @@ import {
   minimumTrades,
   maximumTrades,
 } from './loadConfig';
+import { MAX_LOADED_CANDLE_LENGTH_API } from '../init';
 
 /**
  * To print a value with a color code (green when it's positive, red if it's negative)
@@ -163,8 +163,15 @@ export async function train(useSave?: boolean) {
   let indicators = calculateIndicators(historicCandleData);
 
   for (let gen = 0; gen < totalGenerations; gen++) {
-    for (let i = CANDLE_MIN_LENGTH; i < historicCandleData.length; i++) {
-      let candles = historicCandleData.slice(i - CANDLE_MIN_LENGTH, i + 1);
+    for (
+      let i = MAX_LOADED_CANDLE_LENGTH_API;
+      i < historicCandleData.length;
+      i++
+    ) {
+      let candles = historicCandleData.slice(
+        i - MAX_LOADED_CANDLE_LENGTH_API,
+        i + 1
+      );
       let currentPrice = candles[candles.length - 1].close;
 
       if (!population.done() && i < historicCandleData.length - 1) {

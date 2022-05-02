@@ -58,6 +58,9 @@ export const binanceClient = Binance(
       }
 );
 
+// The maximum number of candles to be loaded by the binance api
+export const MAX_LOADED_CANDLE_LENGTH_API = 499;
+
 // Supported time frame by the robot
 export const supportedTimeFrames = [
   CandleChartInterval.ONE_MINUTE,

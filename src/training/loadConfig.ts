@@ -29,5 +29,3 @@ export const maximumTrades = GoalsConfig['maximum_trades'];
 export const NEURAL_NETWORK_INPUTS = 43;
 
 export const NEURAL_NETWORK_OUTPUTS = 3; // Buy / Sell / Wait
-
-export const CANDLE_MIN_LENGTH = 210; // the trader start to trade when it can see X candles
