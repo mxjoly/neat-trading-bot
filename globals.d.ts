@@ -7,12 +7,14 @@ interface StrategyConfig {
   maxTradeDuration?: number; // Max duration of a trade in the unit of the loopInterval
   trailingStopConfig?: TrailingStopConfig; // Configuration of a trailing stop
   tradingSessions?: TradingSession[]; // The robot trades only during these sessions
+  canOpenNewPositionToCloseLast?: boolean;
   exitStrategy?: ExitStrategy; // Placement of take profits and stop loss
   trendFilter?: TrendFilter; // Trend filter - If the trend is up, only take long, else take only short
   riskManagement: RiskManagement;
 }
 
 interface CandleData {
+  symbol: string;
   open: number;
   high: number;
   low: number;
@@ -20,6 +22,7 @@ interface CandleData {
   volume: number;
   openTime: Date;
   closeTime: Date;
+  interval: CandleChartInterval;
 }
 
 // Strategy for Take Profits and Stop Loss

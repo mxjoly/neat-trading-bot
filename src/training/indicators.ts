@@ -53,7 +53,7 @@ export function calculateIndicators(candles: CandleData[]) {
   });
 
   // Hull Moving Average
-  const hma = HMA.calculate({ values: close, period: 14 });
+  const hma = HMA.calculate(candles, { sourceType: 'close', period: 14 });
 
   // Awesome Indicator
   const ao = AwesomeOscillator.calculate({
@@ -80,10 +80,8 @@ export function calculateIndicators(candles: CandleData[]) {
   });
 
   // Aroon
-  const aroon = Aroon.calculate({
+  const aroon = Aroon.calculate(candles, {
     length: 21,
-    high,
-    low,
   });
 
   // Ichimoku
@@ -124,34 +122,28 @@ export function calculateIndicators(candles: CandleData[]) {
   });
 
   // Supertrend
-  const supertrend = Supertrend.calculate({
-    close,
-    high,
-    low,
+  const supertrend = Supertrend.calculate(candles, {
     atrPeriod: 10,
     atrMultiplier: 3,
   });
 
   // Support resistance
-  const supportResistance = SupportResistance.calculate({
-    high,
-    low,
-    left: 8,
-    right: 7,
+  const supportResistance = SupportResistance.calculate(candles, {
+    leftBars: 8,
+    rightBars: 7,
   });
 
   // Relative Momentum Index
-  const rmi = RMI.calculate({
-    values: close,
+  const rmi = RMI.calculate(candles, {
+    sourceType: 'close',
     length: 14,
     momentum: 3,
   });
 
   // Oscillator volume
-  const volOsc = VolumeOscillator.calculate({
+  const volOsc = VolumeOscillator.calculate(candles, {
     shortLength: 5,
     longLength: 10,
-    volume,
   });
 
   // Relative Strength Index
@@ -346,18 +338,10 @@ export function calculateIndicators(candles: CandleData[]) {
   const valWpr = wpr.map((v) => normalize(v, -100, 0, 0, 1));
 
   // Relative Momentum Index
-  const valRmi = RMI.calculate({
-    values: close,
-    length: 14,
-    momentum: 3,
-  }).map((v) => normalize(v, 0, 100, 0, 1));
+  const valRmi = rmi.map((v) => normalize(v, 0, 100, 0, 1));
 
   // Oscillator volume
-  const valVolOsc = VolumeOscillator.calculate({
-    shortLength: 5,
-    longLength: 10,
-    volume,
-  }).map((v) => normalize(v, 0, 100, 0, 1));
+  const valVolOsc = volOsc.map((v) => normalize(v, 0, 100, 0, 1));
 
   // Aroon
   const vaAroonUpper = aroon

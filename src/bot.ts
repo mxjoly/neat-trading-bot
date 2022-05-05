@@ -87,6 +87,8 @@ export class Bot {
     binanceClient.ws.futuresCandles(pair, interval, async (candle) => {
       if (candle.isFinal) {
         candles.push({
+          symbol: pair,
+          interval,
           open: Number(candle.open),
           high: Number(candle.high),
           low: Number(candle.low),
@@ -129,6 +131,7 @@ export class Bot {
       tradingSessions,
       maxTradeDuration,
       trailingStopConfig,
+      canOpenNewPositionToCloseLast,
       trendFilter,
       riskManagement,
       exitStrategy,
@@ -160,8 +163,12 @@ export class Bot {
     const wait = max === this.decisions[2];
 
     // Conditions to take or not a position
-    const canTakeLongPosition = useLongPosition && positionSize === 0;
-    const canTakeShortPosition = useShortPosition && positionSize === 0;
+    const canTakeLongPosition =
+      (useLongPosition && positionSize === 0) ||
+      (canOpenNewPositionToCloseLast && useLongPosition && hasShortPosition);
+    const canTakeShortPosition =
+      (useShortPosition && positionSize === 0) ||
+      (canOpenNewPositionToCloseLast && useShortPosition && hasLongPosition);
 
     // Currency infos
     const pricePrecision = getPricePrecision(pair, this.exchangeInfo);

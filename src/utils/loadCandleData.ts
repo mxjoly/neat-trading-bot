@@ -29,6 +29,8 @@ export function loadCandlesFromCSV(
           dayjs(data.closeTime).isBefore(endDate)
         ) {
           candleData.push({
+            symbol,
+            interval,
             openTime: new Date(data.openTime),
             closeTime: new Date(data.closeTime),
             open: Number(data.open),
@@ -65,6 +67,8 @@ export function loadCandlesFromAPI(
           candles
             .slice(0, onlyFinalCandle ? -1 : candles.length)
             .map((candle) => ({
+              symbol,
+              interval,
               open: Number(candle.open),
               high: Number(candle.high),
               low: Number(candle.low),
@@ -77,4 +81,35 @@ export function loadCandlesFromAPI(
       })
       .catch(reject);
   });
+}
+
+/**
+ * Get the data from candles
+ * @param candles
+ * @param sourceType
+ */
+export function getCandleSourceType(
+  candles: CandleData[],
+  sourceType: SourceType
+) {
+  switch (sourceType) {
+    case 'open':
+      return candles.map((c) => c.open);
+    case 'high':
+      return candles.map((c) => c.high);
+    case 'low':
+      return candles.map((c) => c.low);
+    case 'close':
+      return candles.map((c) => c.close);
+    case 'hl2':
+      return candles.map((c) => (c.high + c.low) / 2);
+    case 'hlc3':
+      return candles.map((c) => (c.high + c.low + c.close) / 3);
+    case 'hlcc4':
+      return candles.map((c) => (c.high + c.low + c.close * 2) / 3);
+    case 'volume':
+      return candles.map((c) => c.volume);
+    default:
+      return candles.map((c) => c.close);
+  }
 }

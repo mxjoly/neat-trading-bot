@@ -200,6 +200,7 @@ class Player {
       tradingSessions,
       maxTradeDuration,
       trailingStopConfig,
+      canOpenNewPositionToCloseLast,
       trendFilter,
       riskManagement,
       exitStrategy,
@@ -226,8 +227,12 @@ class Player {
     const wait = max === this.decisions[2];
 
     // Conditions to take or not a position
-    const canTakeLongPosition = useLongPosition && position.size === 0;
-    const canTakeShortPosition = useShortPosition && position.size === 0;
+    const canTakeLongPosition =
+      (useLongPosition && position.size === 0) ||
+      (canOpenNewPositionToCloseLast && useLongPosition && hasShortPosition);
+    const canTakeShortPosition =
+      (useShortPosition && position.size === 0) ||
+      (canOpenNewPositionToCloseLast && useShortPosition && hasLongPosition);
 
     // Currency infos
     const pricePrecision = getPricePrecision(pair, exchangeInfo);
