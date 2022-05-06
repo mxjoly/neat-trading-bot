@@ -1,4 +1,5 @@
 import {
+  CandleChartInterval,
   ExchangeInfo,
   FuturesAccountInfoResult,
   OrderSide,
@@ -76,6 +77,15 @@ export class Bot {
 
     // Get the exchange info
     this.exchangeInfo = await binanceClient.futuresExchangeInfo();
+
+    // Aroon
+    loadCandlesFromAPI(
+      'BTCUSDT',
+      CandleChartInterval.ONE_HOUR,
+      binanceClient
+    ).then((candles) => {});
+
+    return;
 
     let { asset, base, interval } = this.strategyConfig;
 

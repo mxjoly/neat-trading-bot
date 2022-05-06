@@ -8,10 +8,7 @@ const defaultOptions: Options = {
   length: 14,
 };
 
-let cache = new Cache();
-
 export function calculate(candles: CandleData[], options?: Options) {
-  let { symbol, interval, openTime } = candles[candles.length - 1];
   options = { ...defaultOptions, ...options };
 
   let high = candles.map((c) => c.high);

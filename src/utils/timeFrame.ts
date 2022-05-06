@@ -61,6 +61,10 @@ export function timeFrameToMinutes(timeFrame: CandleChartInterval) {
       return 12 * 60;
     case CandleChartInterval.ONE_DAY:
       return 24 * 60;
+    case CandleChartInterval.ONE_WEEK:
+      return 24 * 60 * 7;
+    case CandleChartInterval.ONE_MONTH:
+      return 24 * 60 * 7 * 30;
     default:
       return null;
   }
@@ -134,7 +138,22 @@ export function durationBetweenDates(
       );
     case CandleChartInterval.ONE_DAY:
       return Math.round(
-        (endDate.getTime() - startDate.getTime()) / (60000 * 60 * 12)
+        (endDate.getTime() - startDate.getTime()) / (60000 * 60 * 24)
       );
   }
+}
+
+/**
+ * Get the ratio between two time frames
+ * @param lowTimeFrame
+ * @param highTimeFrame
+ */
+export function ratioBetweenTimeFrames(
+  lowTimeFrame: CandleChartInterval,
+  highTimeFrame: CandleChartInterval
+) {
+  let ltfMin = timeFrameToMinutes(lowTimeFrame);
+  let htfMin = timeFrameToMinutes(highTimeFrame);
+
+  return htfMin / ltfMin;
 }

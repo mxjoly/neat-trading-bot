@@ -1,10 +1,16 @@
-import { Binance, ExchangeInfo, OrderSide } from 'binance-api-node';
+import {
+  Binance,
+  CandleChartInterval,
+  ExchangeInfo,
+  OrderSide,
+} from 'binance-api-node';
 import { Counter } from '../tools/counter';
 import Genome from './genome';
 import { getPricePrecision, getQuantityPrecision } from '../utils/currencyInfo';
 import { BotConfig } from '../init';
 import { calculateActivationPrice } from '../utils/trailingStop';
 import { isOnTradingSession } from '../utils/tradingSession';
+import { ratioBetweenTimeFrames } from '../utils/timeFrame';
 
 const TAKER_FEES = BotConfig['taker_fees_futures']; // %
 const MAKER_FEES = BotConfig['maker_fees_futures']; // %
@@ -34,6 +40,9 @@ class Player {
   private openOrders: OpenOrder[];
   private counter: Counter; // to cut the position too long
   public stats: TraderStats; // Stats
+
+  // History
+  private historyBalance: number[];
 
   // NEAT Stuffs
   public fitness: number;
@@ -114,6 +123,9 @@ class Player {
     this.brain = brain || new Genome(genomeInputs, genomeOutputs);
     this.brain.generateFullNetwork();
 
+    // History
+    this.historyBalance = [];
+
     if (strategyConfig.maxTradeDuration) {
       this.counter = new Counter(strategyConfig.maxTradeDuration);
     }
@@ -157,6 +169,9 @@ class Player {
 
     // We measure the score of the trader by the profit generated
     this.score = totalNetProfit;
+
+    // Save the balance to history
+    this.historyBalance.push(this.wallet.totalWalletBalance);
   }
 
   /**
@@ -170,18 +185,8 @@ class Player {
    * Gets the output of the brain, then converts them to actions
    */
   public think() {
-    var max = 0;
-    var maxIndex = 0;
-
     // Get the output of the neural network
     this.decisions = this.brain.feedForward(this.vision);
-
-    for (var i = 0; i < this.decisions.length; i++) {
-      if (this.decisions[i] > max) {
-        max = this.decisions[i];
-        maxIndex = i;
-      }
-    }
   }
 
   /**
@@ -967,6 +972,8 @@ class Player {
     }
   }
 
+  // ----------------------------------------------------------------------------- //
+
   /**
    * Returns a clone of this player with the same brain
    */
@@ -1014,6 +1021,107 @@ class Player {
     return clone;
   }
 
+  public crossover(parent: Player) {
+    var child = new Player({
+      genomeInputs: this.genomeInputs,
+      genomeOutputs: this.genomeOutputs,
+      strategyConfig: this.strategyConfig,
+      binanceClient: this.binanceClient,
+      exchangeInfo: this.exchangeInfo,
+      initialCapital: this.initialCapital,
+      goals: this.goals,
+    });
+    child.brain = this.brain.crossover(parent.brain);
+    child.brain.generateNetwork();
+    return child;
+  }
+
+  // ----------------------------------------------------------------------------- //
+
+  /**
+   * Check the number of profitable days
+   */
+  public checkProfitableDays() {
+    let hasProfit: number[] = [];
+    let interval = ratioBetweenTimeFrames(
+      this.strategyConfig.interval,
+      CandleChartInterval.ONE_DAY
+    );
+
+    for (let i = interval; i < this.historyBalance.length; i += interval) {
+      let isProfitable =
+        this.historyBalance[i] - this.historyBalance[i - interval] > 0 ? 1 : 0;
+      hasProfit.push(isProfitable);
+    }
+
+    return {
+      score: hasProfit.reduce((prev, cur) => prev + cur, 0),
+      maxScore: hasProfit.length,
+    };
+  }
+
+  /**
+   * Check the number of profitable months
+   */
+  public checkProfitableMonths() {
+    let hasProfit: number[] = [];
+    let interval = ratioBetweenTimeFrames(
+      this.strategyConfig.interval,
+      CandleChartInterval.ONE_MONTH
+    );
+
+    for (let i = interval; i < this.historyBalance.length; i += interval) {
+      let isProfitable =
+        this.historyBalance[i] - this.historyBalance[i - interval] > 0 ? 1 : 0;
+      hasProfit.push(isProfitable);
+    }
+
+    return {
+      score: hasProfit.reduce((prev, cur) => prev + cur, 0),
+      maxScore: hasProfit.length,
+    };
+  }
+
+  /**
+   * Check the profit for days
+   */
+  public getDailyProfits() {
+    let dayProfit: number[] = [];
+    let interval = ratioBetweenTimeFrames(
+      this.strategyConfig.interval,
+      CandleChartInterval.ONE_DAY
+    );
+
+    for (let i = interval; i < this.historyBalance.length; i += interval) {
+      let profit =
+        (this.historyBalance[i] - this.historyBalance[i - interval]) /
+        this.historyBalance[i - interval];
+      dayProfit.push(profit);
+    }
+
+    return dayProfit;
+  }
+
+  /**
+   * Check the profit for month
+   */
+  public getMonthlyProfits() {
+    let monthlyProfit: number[] = [];
+    let interval = ratioBetweenTimeFrames(
+      this.strategyConfig.interval,
+      CandleChartInterval.ONE_MONTH
+    );
+
+    for (let i = interval; i < this.historyBalance.length; i += interval) {
+      let profit =
+        (this.historyBalance[i] - this.historyBalance[i - interval]) /
+        this.historyBalance[i - interval];
+      monthlyProfit.push(profit);
+    }
+
+    return monthlyProfit;
+  }
+
   /**
    * Genetic algorithm
    */
@@ -1042,60 +1150,73 @@ class Player {
     const avgProfit = totalProfit / (longWinningTrades + shortWinningTrades);
     const avgLoss = totalLoss / (longLostTrades + shortLostTrades);
 
+    const { score: dayScore, maxScore: maxScoreDay } =
+      this.checkProfitableDays();
+    const { score: monthScore, maxScore: maxScoreMonth } =
+      this.checkProfitableMonths();
+
     // ========================== Fitness Formulas ================================== //
-    this.fitness = this.wallet.totalWalletBalance / totalTrades;
+    this.fitness = this.wallet.totalWalletBalance;
     // this.fitness = totalNetProfit / totalTrades;
     // this.fitness = avgProfit * winRate - avgLoss * lossRate;
     // this.fitness = roi / (1 - maxRelativeDrawdown);
     // ============================================================================= //
 
-    if (isNaN(this.fitness)) {
-      this.fitness = 0;
-      return;
-    }
+    // ----------------------------
 
-    if (this.goals.minimumTrades && totalTrades < this.goals.minimumTrades) {
-      // this.fitness /= 2 - diff;
-      this.fitness = 0;
-    }
+    // if (dayScore < maxScoreDay) {
+    //   let factor = 1;
+    //   this.fitness /= (maxScoreDay / dayScore) ** factor;
+    // }
 
-    if (this.goals.maximumTrades && totalTrades > this.goals.maximumTrades) {
-      // this.fitness /= 2 - diff;
-      this.fitness = 0;
+    // if (monthScore < maxScoreMonth) {
+    //   let factor = 1;
+    //   this.fitness /= (maxScoreMonth / monthScore) ** factor;
+    // }
+
+    // let dailyProfits = this.getDailyProfits();
+    // dailyProfits.forEach((dailyProfit) => {
+    //   let factor = 1;
+    //   this.fitness /= (this.goals.dailyProfit / dailyProfit) ** factor;
+    // });
+
+    // let monthlyProfits = this.getDailyProfits();
+    // monthlyProfits.forEach((monthlyProfit) => {
+    //   let factor = 1;
+    //   this.fitness /= (this.goals.monthlyProfit / monthlyProfit) ** factor;
+    // });
+
+    // -----------------------------------
+
+    if (this.goals.numberTrades && totalTrades !== this.goals.numberTrades) {
+      let factor = 1;
+      let diff = Math.abs(this.goals.numberTrades - totalTrades);
+      this.fitness /= (1 + diff) ** factor;
     }
 
     if (
       this.goals.maxRelativeDrawdown &&
       maxRelativeDrawdown < this.goals.maxRelativeDrawdown
     ) {
-      let diff = maxRelativeDrawdown - this.goals.maxRelativeDrawdown;
-      this.fitness /= 2 - diff;
+      let factor = 1;
+      this.fitness /=
+        (this.goals.maxRelativeDrawdown / maxRelativeDrawdown) ** factor;
     }
 
     if (this.goals.profitFactor && profitFactor < this.goals.profitFactor) {
-      this.fitness /= this.goals.profitFactor / profitFactor;
+      let factor = 1;
+      this.fitness /= (this.goals.profitFactor / profitFactor) ** factor;
     }
 
     if (this.goals.winRate && winRate < this.goals.winRate) {
-      let diff = winRate - this.goals.winRate;
-      // this.fitness /= 2 - diff;
-      this.fitness /= 2 - winRate;
+      let factor = 1;
+      this.fitness /= (this.goals.winRate / winRate) ** factor;
     }
-  }
 
-  public crossover(parent: Player) {
-    var child = new Player({
-      genomeInputs: this.genomeInputs,
-      genomeOutputs: this.genomeOutputs,
-      strategyConfig: this.strategyConfig,
-      binanceClient: this.binanceClient,
-      exchangeInfo: this.exchangeInfo,
-      initialCapital: this.initialCapital,
-      goals: this.goals,
-    });
-    child.brain = this.brain.crossover(parent.brain);
-    child.brain.generateNetwork();
-    return child;
+    if (isNaN(this.fitness)) {
+      this.fitness = 0;
+      return;
+    }
   }
 }
 

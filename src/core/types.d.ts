@@ -19,6 +19,7 @@ interface TraderGoals {
   winRate?: number;
   profitFactor?: number; // like the RR
   maxRelativeDrawdown?: number;
-  minimumTrades?: number;
-  maximumTrades?: number;
+  numberTrades?: number;
+  dailyProfit?: number;
+  monthlyProfit?: number;
 }

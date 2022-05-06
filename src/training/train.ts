@@ -16,13 +16,14 @@ import {
   totalGenerations,
   totalPopulation,
   initialCapital,
-  winRate,
-  profitFactor,
-  maxRelativeDrawdown,
+  goalWinRate,
+  goalProfitFactor,
+  goalMaxRelativeDrawdown,
   startDateTest,
   endDateTest,
-  minimumTrades,
-  maximumTrades,
+  goalNumberTrades,
+  goalDailyProfit,
+  goalMonthlyProfit,
 } from './loadConfig';
 import { MAX_LOADED_CANDLE_LENGTH_API } from '../init';
 
@@ -39,6 +40,10 @@ function coloredValue(
 ) {
   if (value >= pivotValue) {
     return chalk.greenBright(
+      value.toString().concat(addPercentageSymbol ? '%' : '')
+    );
+  } else if (value >= pivotValue * 0.9) {
+    return chalk.yellowBright(
       value.toString().concat(addPercentageSymbol ? '%' : '')
     );
   } else {
@@ -95,13 +100,22 @@ function displayBestTraderStats(bestTrader: Trader) {
   console.log(`Trades won: ${totalWinningTrades}`);
   console.log(`Trades lost: ${totalLostTrades}`);
   console.log(
-    `Max Relative Drawdown: ${coloredValue(maxRelDrawdown, 1, true)}`
+    `Max Relative Drawdown: ${coloredValue(
+      maxRelDrawdown,
+      (goalMaxRelativeDrawdown * 100) | -5,
+      true
+    )}`
   );
-  console.log(`Win rate: ${coloredValue(winRate, 50, true)}`);
+  console.log(
+    `Win rate: ${coloredValue(winRate, (goalWinRate * 100) | 0.7, true)}`
+  );
   console.log(`Longs: ${longWinningTrades + longLostTrades}`);
   console.log(`Shorts: ${shortWinningTrades + shortLostTrades}`);
   console.log(
-    `Profit Factor: ${coloredValue(isNaN(profitFactor) ? 0 : profitFactor, 1)}`
+    `Profit Factor: ${coloredValue(
+      isNaN(profitFactor) ? 0 : profitFactor,
+      goalProfitFactor | 1
+    )}`
   );
   console.log(`Total Profit: ${coloredValue(totalProfit, 0)}`);
   console.log(`Total Loss: ${coloredValue(-totalLoss, 0)}`);
@@ -138,12 +152,13 @@ export async function train(useSave?: boolean) {
     endDateTraining
   );
 
-  let goals = {
-    winRate: winRate,
-    profitFactor: profitFactor,
-    maxRelativeDrawdown: maxRelativeDrawdown,
-    minimumTrades: minimumTrades,
-    maximumTrades: maximumTrades,
+  let goals: TraderGoals = {
+    winRate: goalWinRate,
+    profitFactor: goalProfitFactor,
+    maxRelativeDrawdown: goalMaxRelativeDrawdown,
+    numberTrades: goalNumberTrades,
+    dailyProfit: goalDailyProfit,
+    monthlyProfit: goalMonthlyProfit,
   };
 
   let population = new Population({

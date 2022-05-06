@@ -5,14 +5,14 @@ import { atrStrategy } from './exitStrategy';
 const config: StrategyConfig = {
   asset: 'BTC',
   base: 'USDT',
-  interval: CandleChartInterval.FIVE_MINUTES,
+  interval: CandleChartInterval.FIFTEEN_MINUTES,
   risk: 0.01,
   leverage: 20,
   exitStrategy: (price, candles, pricePrecision, side) =>
     atrStrategy(price, candles, pricePrecision, side, {
-      atrPeriod: 14,
-      atrMultiplier: 2.0,
-      stopLossAtrRatio: 2,
+      atrMultiplier: 2,
+      atrPeriod: 10,
+      stopLossAtrRatio: 1,
       takeProfitAtrRatio: 2,
     }),
   riskManagement: getPositionSizeByRisk,

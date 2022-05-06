@@ -20,12 +20,13 @@ export const startDateTest = NeatConfig['start_date_test'];
 export const endDateTest = NeatConfig['end_date_test'];
 
 // Goals to reach
-export const winRate = GoalsConfig['win_rate'];
-export const profitFactor = GoalsConfig['profit_factor'];
-export const maxRelativeDrawdown = GoalsConfig['max_relative_drawdown'];
-export const minimumTrades = GoalsConfig['minimum_trades'];
-export const maximumTrades = GoalsConfig['maximum_trades'];
+export const goalWinRate = GoalsConfig['win_rate'];
+export const goalProfitFactor = GoalsConfig['profit_factor'];
+export const goalMaxRelativeDrawdown = GoalsConfig['max_relative_drawdown'];
+export const goalNumberTrades = GoalsConfig['number_trades'];
+export const goalDailyProfit = GoalsConfig['daily_profit'];
+export const goalMonthlyProfit = GoalsConfig['monthly_profit'];
 
-export const NEURAL_NETWORK_INPUTS = 43;
+export const NEURAL_NETWORK_INPUTS = 82;
 
 export const NEURAL_NETWORK_OUTPUTS = 3; // Buy / Sell / Wait

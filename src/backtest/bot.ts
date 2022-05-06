@@ -212,10 +212,7 @@ export class BackTestBot {
       i < this.historicCandleData.length;
       i++
     ) {
-      let candles = this.historicCandleData.slice(
-        i - MAX_LOADED_CANDLE_LENGTH_API,
-        i + 1
-      );
+      let candles = this.historicCandleData.slice(0, i + 1);
       let currentCandle = candles[candles.length - 1];
       let currentDate = currentCandle.closeTime;
       let currentPrice = currentCandle.close;
